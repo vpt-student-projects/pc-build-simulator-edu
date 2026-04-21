@@ -1,11 +1,4 @@
-﻿/// <summary>
-/// Project : Easy Build System
-/// Class : Demo_FirstPersonCamera.cs
-/// Namespace : EasyBuildSystem.Examples.Bases.Scripts.FirstPerson
-/// Copyright : © 2015 - 2022 by PolarInteractive
-/// </summary>
-
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace EasyBuildSystem.Examples.Bases.Scripts.FirstPerson
 {
@@ -24,6 +17,9 @@ namespace EasyBuildSystem.Examples.Bases.Scripts.FirstPerson
 
         Camera m_Camera;
 
+        // Новое поле для отслеживания, заблокирован ли ввод камеры
+        private bool m_IsInputLocked = false;
+
         void Awake()
         {
             m_Camera = Camera.main;
@@ -40,6 +36,10 @@ namespace EasyBuildSystem.Examples.Bases.Scripts.FirstPerson
 
         void LateUpdate()
         {
+            // Если ввод заблокирован — пропускаем вращение
+            if (m_IsInputLocked)
+                return;
+
             float yRot = Demo_InputHandler.Instance.Look.x * m_XSensitivity;
             float xRot = -Demo_InputHandler.Instance.Look.y * m_YSensitivity;
 
@@ -55,6 +55,30 @@ namespace EasyBuildSystem.Examples.Bases.Scripts.FirstPerson
             transform.localRotation = m_CharacterTargetRot;
 
             m_Camera.transform.localRotation = m_CameraTargetRot;
+        }
+
+        /// <summary>
+        /// Блокирует вращение камеры и освобождает курсор
+        /// </summary>
+        public void LockCameraInput(bool lockInput)
+        {
+            m_IsInputLocked = lockInput;
+
+            if (lockInput)
+            {
+                // Освобождаем курсор для UI
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            else
+            {
+                // Возвращаем блокировку курсора
+                if (m_LockCursor)
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                }
+            }
         }
 
         Quaternion ClampRotationAroundXAxis(Quaternion quaternion)

@@ -20,3 +20,7 @@ MonoBehaviour:
   - BlockPC
   - GPU
   - Table
+  - MotherBoard
+  - CPU
+  - RAM
+  - PowerSupply
