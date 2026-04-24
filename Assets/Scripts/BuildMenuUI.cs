@@ -18,8 +18,10 @@ public class BuildMenuUI : MonoBehaviour
 
     [Header("Data")]
     [SerializeField] private List<BuildingPartData> allParts = new List<BuildingPartData>();
+    [Header("Drag & Drop")]
+    [SerializeField] private BuildModeDragController dragController;
 
-    // Словарь для связи Toggle и категории
+    //    Toggle  
     private Dictionary<Toggle, string> m_ToggleCategories = new Dictionary<Toggle, string>();
 
     private string m_CurrentCategory = "ALL";
@@ -30,57 +32,57 @@ public class BuildMenuUI : MonoBehaviour
 
     void Start()
     {
-        // Проверки
+        // 
         if (cardPrefab == null || contentParent == null || tabsGroup == null)
         {
-            Debug.LogError("Не все ссылки назначены в инспекторе!");
+            Debug.LogError("     !");
             return;
         }
 
-        // Настройка Toggle Group
+        //  Toggle Group
         SetupToggles();
 
-        // Настройка Dropdown для фильтрации по мощности
+        //  Dropdown    
         if (powerFilterDropdown != null)
         {
             powerFilterDropdown.ClearOptions();
-            powerFilterDropdown.AddOptions(new List<string> { "Все", "0-25%", "25-50%", "50-75%", "75-100%" });
+            powerFilterDropdown.AddOptions(new List<string> { "", "0-25%", "25-50%", "50-75%", "75-100%" });
             powerFilterDropdown.onValueChanged.AddListener(OnPowerFilterChanged);
         }
 
-        // Настройка Dropdown для сортировки
+        //  Dropdown  
         if (nameFilterDropdown != null)
         {
             nameFilterDropdown.ClearOptions();
-            nameFilterDropdown.AddOptions(new List<string> { "По умолчанию", "По названию (А-Я)", "По названию (Я-А)", "По мощности (возр.)", "По мощности (убыв.)" });
+            nameFilterDropdown.AddOptions(new List<string> { " ", "  (-)", "  (-)", "  (.)", "  (.)" });
             nameFilterDropdown.onValueChanged.AddListener(OnNameSortChanged);
         }
 
-        // Первоначальная загрузка
+        //  
         RefreshCards();
     }
 
     /// <summary>
-    /// Настройка всех Toggle в группе
+    ///   Toggle  
     /// </summary>
     private void SetupToggles()
     {
         m_ToggleCategories.Clear();
 
-        // Проходим по всем дочерним Toggle
+        //     Toggle
         foreach (Transform child in tabsGroup.transform)
         {
             Toggle toggle = child.GetComponent<Toggle>();
             if (toggle != null)
             {
-                // Убираем старые слушатели
+                //   
                 toggle.onValueChanged.RemoveAllListeners();
 
-                // Получаем категорию из имени объекта или из кастомного компонента
+                //         
                 string category = GetCategoryFromToggleName(child.name);
                 m_ToggleCategories[toggle] = category;
 
-                // Добавляем слушатель
+                //  
                 toggle.onValueChanged.AddListener((isOn) => {
                     if (isOn)
                     {
@@ -88,12 +90,12 @@ public class BuildMenuUI : MonoBehaviour
                     }
                 });
 
-                // Устанавливаем группу
+                //  
                 toggle.group = tabsGroup;
             }
         }
 
-        // Активируем первый Toggle (Всё)
+        //   Toggle ()
         foreach (var kvp in m_ToggleCategories)
         {
             if (kvp.Value == "ALL")
@@ -105,42 +107,42 @@ public class BuildMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Получение категории из имени Toggle
+    ///     Toggle
     /// </summary>
     private string GetCategoryFromToggleName(string toggleName)
     {
-        // Маппинг имён на категории
+        //    
         switch (toggleName.ToLower())
         {
-            case "всё":
+            case "":
             case "all":
                 return "ALL";
-            case "цпу":
+            case "":
             case "cpu":
                 return "CPU";
-            case "рам":
+            case "":
             case "ram":
                 return "RAM";
-            case "бп":
+            case " ":
             case "psu":
                 return "PSU";
-            case "материнка":
+            case "":
             case "motherboard":
                 return "MOTHERBOARD";
-            case "корпус":
+            case "":
             case "case":
                 return "CASE";
-            case "видеокарта":
+            case "":
             case "gpu":
                 return "GPU";
             default:
-                Debug.LogWarning($"Неизвестное имя Toggle: {toggleName}. Будет использовано как категория.");
+                Debug.LogWarning($"  Toggle: {toggleName}.    .");
                 return toggleName.ToUpper();
         }
     }
 
     /// <summary>
-    /// Вызывается при изменении активного Toggle
+    ///     Toggle
     /// </summary>
     private void OnCategoryChanged(Toggle activeToggle)
     {
@@ -152,7 +154,7 @@ public class BuildMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Вызывается при изменении фильтра мощности
+    ///     
     /// </summary>
     private void OnPowerFilterChanged(int index)
     {
@@ -168,7 +170,7 @@ public class BuildMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Вызывается при изменении сортировки
+    ///    
     /// </summary>
     private void OnNameSortChanged(int index)
     {
@@ -184,7 +186,7 @@ public class BuildMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Проверяет, проходит ли объект фильтр по мощности
+    /// ,      
     /// </summary>
     private bool PassesPowerFilter(BuildingPartData part)
     {
@@ -203,7 +205,7 @@ public class BuildMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Сортирует список объектов согласно выбранному методу
+    ///      
     /// </summary>
     private List<BuildingPartData> SortParts(List<BuildingPartData> parts)
     {
@@ -226,23 +228,23 @@ public class BuildMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Обновляет отображение карточек с учётом всех фильтров
+    ///       
     /// </summary>
     public void RefreshCards()
     {
         ClearCards();
 
-        // Фильтруем по категории и мощности
+        //     
         List<BuildingPartData> filteredParts = new List<BuildingPartData>();
 
         foreach (var part in allParts)
         {
             if (part == null) continue;
 
-            // Проверка категории
+            //  
             bool categoryMatch = m_CurrentCategory == "ALL" || part.Category == m_CurrentCategory;
 
-            // Проверка мощности
+            //  
             bool powerMatch = PassesPowerFilter(part);
 
             if (categoryMatch && powerMatch)
@@ -251,10 +253,10 @@ public class BuildMenuUI : MonoBehaviour
             }
         }
 
-        // Сортируем
+        // 
         filteredParts = SortParts(filteredParts);
 
-        // Создаём карточки
+        //  
         foreach (var partData in filteredParts)
         {
             CreateCard(partData);
@@ -262,13 +264,27 @@ public class BuildMenuUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Создаёт одну карточку объекта
+    ///    
     /// </summary>
     private void CreateCard(BuildingPartData partData)
     {
         GameObject card = Instantiate(cardPrefab, contentParent);
 
-        // Название
+        PCComponent componentData = partData.ComponentData;
+        if (componentData == null && partData.PartPrefab != null)
+        {
+            componentData = partData.PartPrefab.GetComponent<PCComponent>();
+        }
+
+        // Drag item receives data only from BuildMenuUI.
+        UIComponentDragItem dragItem = card.GetComponent<UIComponentDragItem>();
+        if (dragItem == null)
+        {
+            dragItem = card.AddComponent<UIComponentDragItem>();
+        }
+        dragItem.InitializeFromMenu(dragController, componentData, partData.PartPrefab);
+
+        // 
         Transform nameTransform = card.transform.Find("Name");
         if (nameTransform != null)
         {
@@ -276,7 +292,7 @@ public class BuildMenuUI : MonoBehaviour
             if (nameText != null) nameText.text = partData.DisplayName;
         }
 
-        // Иконка
+        // 
         Transform iconTransform = card.transform.Find("Icon");
         if (iconTransform != null)
         {
@@ -284,7 +300,7 @@ public class BuildMenuUI : MonoBehaviour
             if (iconImage != null) iconImage.sprite = partData.Icon;
         }
 
-        // Описание
+        // 
         Transform descTransform = card.transform.Find("Description");
         if (descTransform != null)
         {
@@ -292,7 +308,7 @@ public class BuildMenuUI : MonoBehaviour
             if (descText != null) descText.text = partData.Description;
         }
 
-        // Процент мощности
+        //  
         Transform powerTransform = card.transform.Find("PowerText");
         if (powerTransform != null)
         {
@@ -300,16 +316,22 @@ public class BuildMenuUI : MonoBehaviour
             if (powerText != null) powerText.text = $"{partData.PowerPercent}%";
         }
 
-        // Кнопка "Использовать"
+        //  ""
         Transform buttonTransform = card.transform.Find("UseButton");
         if (buttonTransform != null)
         {
             Button useBtn = buttonTransform.GetComponent<Button>();
             if (useBtn != null)
             {
-                BuildingPart partToSelect = partData.PartPrefab;
-                useBtn.onClick.AddListener(() => SelectPart(partToSelect));
+                useBtn.onClick.RemoveAllListeners();
             }
+
+            UIComponentDragItem buttonDragItem = buttonTransform.GetComponent<UIComponentDragItem>();
+            if (buttonDragItem == null)
+            {
+                buttonDragItem = buttonTransform.gameObject.AddComponent<UIComponentDragItem>();
+            }
+            buttonDragItem.InitializeFromMenu(dragController, componentData, partData.PartPrefab);
         }
 
         spawnedCards.Add(card);
@@ -350,5 +372,6 @@ public class BuildMenuUI : MonoBehaviour
         public string Description;
         public float PowerPercent;
         public BuildingPart PartPrefab;
+        public PCComponent ComponentData;
     }
 }

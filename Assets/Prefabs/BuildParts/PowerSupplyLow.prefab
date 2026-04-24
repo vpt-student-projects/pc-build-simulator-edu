@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 704799599623715626}
   - component: {fileID: 3603149434608984114}
   - component: {fileID: 4353020485948163165}
+  - component: {fileID: 2402101586663396634}
   m_Layer: 0
   m_Name: PowerSupplyLow
   m_TagString: Untagged
@@ -108,6 +109,27 @@ MonoBehaviour:
   m_RequireSocket: 0
   m_IgnoreSocket: 0
   m_ShowDebugs: 0
+--- !u!114 &2402101586663396634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7518473848954980191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  componentType: 3
+  compatibleSockets: 02000000
+  isInstalled: 0
+  parentSlot: {fileID: 0}
+  socketType: 0
+  ramType: 0
+  ramSlotsCount: 0
+  requiredPSUPower: 0
+  psuPower: 600
 --- !u!1001 &2819096143741908813
 PrefabInstance:
   m_ObjectHideFlags: 0

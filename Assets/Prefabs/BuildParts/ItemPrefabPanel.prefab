@@ -284,7 +284,6 @@ GameObject:
   - component: {fileID: 4605892278673273019}
   - component: {fileID: 3052202856144197020}
   - component: {fileID: 7652575968936186265}
-  - component: {fileID: 1701960217942875051}
   m_Layer: 0
   m_Name: UseButton
   m_TagString: Untagged
@@ -393,31 +392,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3052202856144197020}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1701960217942875051}
-        m_TargetAssemblyTypeName: ComponentSelectButton, Assembly-CSharp
-        m_MethodName: OnButtonPressed
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
---- !u!114 &1701960217942875051
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1818683502876334400}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 549455eb9b030304db70e898df49d537, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+      m_Calls: []
 --- !u!1 &3401835950662965428
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,6 +690,7 @@ GameObject:
   - component: {fileID: 4167498827408733068}
   - component: {fileID: 8046448483639050594}
   - component: {fileID: 322790360968157839}
+  - component: {fileID: -8900588919741162339}
   m_Layer: 0
   m_Name: ItemPrefabPanel
   m_TagString: Untagged
@@ -785,6 +761,21 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 640.96
+--- !u!114 &-8900588919741162339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7768073406269589692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a61330894d8329c4bba349a5d9da36ad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dragController: {fileID: 0}
+  componentData: {fileID: 0}
+  buildingPartPrefab: {fileID: 0}
 --- !u!1 &9167007648213898188
 GameObject:
   m_ObjectHideFlags: 0

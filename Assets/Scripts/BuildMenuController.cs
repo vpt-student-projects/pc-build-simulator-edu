@@ -9,6 +9,7 @@ public class BuildMenuController : MonoBehaviour
     private bool isOpen = false;
 
     private Demo_FirstPersonCamera m_CameraController;
+    private Demo_FirstPersonController m_FirstPersonController;
 
     private void Start()
     {
@@ -20,6 +21,12 @@ public class BuildMenuController : MonoBehaviour
         if (m_CameraController == null)
         {
             Debug.LogWarning("Demo_FirstPersonCamera не найден на сцене!");
+        }
+
+        m_FirstPersonController = FindObjectOfType<Demo_FirstPersonController>();
+        if (m_FirstPersonController == null)
+        {
+            Debug.LogWarning("Demo_FirstPersonController не найден на сцене!");
         }
     }
 
@@ -45,6 +52,11 @@ public class BuildMenuController : MonoBehaviour
             {
                 m_CameraController.LockCameraInput(true);
             }
+
+            if (m_FirstPersonController != null)
+            {
+                m_FirstPersonController.enabled = false;
+            }
         }
         else
         {
@@ -54,6 +66,11 @@ public class BuildMenuController : MonoBehaviour
             if (m_CameraController != null)
             {
                 m_CameraController.LockCameraInput(false);
+            }
+
+            if (m_FirstPersonController != null)
+            {
+                m_FirstPersonController.enabled = true;
             }
         }
     }
@@ -65,6 +82,10 @@ public class BuildMenuController : MonoBehaviour
         isOpen = false;
         menuPanel.SetActive(false);
         // НЕ вызываем LockCameraInput(false) — камера остаётся заблокированной
+        if (m_FirstPersonController != null)
+        {
+            m_FirstPersonController.enabled = false;
+        }
     }
 
     /// <summary>
@@ -79,6 +100,11 @@ public class BuildMenuController : MonoBehaviour
         if (m_CameraController != null)
         {
             m_CameraController.LockCameraInput(true);
+        }
+
+        if (m_FirstPersonController != null)
+        {
+            m_FirstPersonController.enabled = false;
         }
     }
     // Метод для закрытия меню по кнопке (если нужно)

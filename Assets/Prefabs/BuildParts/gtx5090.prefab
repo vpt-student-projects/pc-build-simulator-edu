@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2987395527362777191}
   - component: {fileID: 3905710294307925887}
   - component: {fileID: 4384969491642952401}
+  - component: {fileID: -495195524375753170}
   m_Layer: 0
   m_Name: gtx5090
   m_TagString: Untagged
@@ -108,6 +109,27 @@ MonoBehaviour:
   m_RequireSocket: 0
   m_IgnoreSocket: 0
   m_ShowDebugs: 0
+--- !u!114 &-495195524375753170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5157092727726572090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  componentType: 6
+  compatibleSockets: 06000000
+  isInstalled: 0
+  parentSlot: {fileID: 0}
+  socketType: 0
+  ramType: 0
+  ramSlotsCount: 0
+  requiredPSUPower: 500
+  psuPower: 0
 --- !u!1001 &1972905768361482689
 PrefabInstance:
   m_ObjectHideFlags: 0

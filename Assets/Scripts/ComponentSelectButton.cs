@@ -19,6 +19,12 @@ public class ComponentSelectButton : MonoBehaviour
 
     private void Start()
     {
+        if (FindObjectOfType<BuildModeDragController>() != null)
+        {
+            enabled = false;
+            return;
+        }
+
         m_Placer = FindObjectOfType<CustomBuildingPlacer>();
         m_CameraController = FindObjectOfType<Demo_FirstPersonCamera>();
         m_MenuController = FindObjectOfType<BuildMenuController>();

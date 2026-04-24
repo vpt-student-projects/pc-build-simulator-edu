@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 70925321146764167}
   - component: {fileID: 3532305066211882543}
   - component: {fileID: 3313150262906324345}
+  - component: {fileID: 4304872308798116807}
   m_Layer: 0
   m_Name: RAMLow
   m_TagString: Untagged
@@ -108,6 +109,27 @@ MonoBehaviour:
   m_RequireSocket: 1
   m_IgnoreSocket: 0
   m_ShowDebugs: 0
+--- !u!114 &4304872308798116807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 523343836330259099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  componentType: 6
+  compatibleSockets: 06000000
+  isInstalled: 0
+  parentSlot: {fileID: 0}
+  socketType: 0
+  ramType: 2
+  ramSlotsCount: 0
+  requiredPSUPower: 0
+  psuPower: 0
 --- !u!1001 &8279161909749854362
 PrefabInstance:
   m_ObjectHideFlags: 0
