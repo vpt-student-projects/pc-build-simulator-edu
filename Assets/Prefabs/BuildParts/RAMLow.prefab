@@ -106,7 +106,7 @@ MonoBehaviour:
   m_CanDestroying: 1
   m_CanEditing: 1
   m_RequireArea: 0
-  m_RequireSocket: 1
+  m_RequireSocket: 0
   m_IgnoreSocket: 0
   m_ShowDebugs: 0
 --- !u!114 &4304872308798116807
@@ -121,8 +121,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  componentType: 6
-  compatibleSockets: 06000000
+  componentType: 5
+  compatibleSockets: 05000000
   isInstalled: 0
   parentSlot: {fileID: 0}
   socketType: 0
