@@ -47,6 +47,11 @@ public class BuildMenuController : MonoBehaviour
 
     private bool ShouldIgnoreToggle()
     {
+        if (PCComponentModelViewer.IsViewerOpen)
+        {
+            return true;
+        }
+
         if (isOpen)
         {
             return false; // allow closing with Tab

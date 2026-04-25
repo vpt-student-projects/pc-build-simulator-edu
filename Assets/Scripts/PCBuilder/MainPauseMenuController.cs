@@ -45,6 +45,11 @@ public class MainPauseMenuController : MonoBehaviour
 
     private void Update()
     {
+        if (PCComponentModelViewer.IsViewerOpen)
+        {
+            return;
+        }
+
         if (requireAuthentication && !isAuthenticated)
         {
             return;
