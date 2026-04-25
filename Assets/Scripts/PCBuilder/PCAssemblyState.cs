@@ -9,6 +9,9 @@ public class PCAssemblyState : MonoBehaviour
     [SerializeField] private PCComponent gpu;
     [SerializeField] private int installedRamCount;
     [SerializeField] private int installedStorageCount;
+    [SerializeField] private System.Collections.Generic.List<PCComponent> installedRam = new System.Collections.Generic.List<PCComponent>();
+    [SerializeField] private System.Collections.Generic.List<PCComponent> installedStorage = new System.Collections.Generic.List<PCComponent>();
+    [SerializeField] private System.Collections.Generic.List<PCComponent> installedCoolers = new System.Collections.Generic.List<PCComponent>();
 
     public PCComponent Case => caseComponent;
     public PCComponent Motherboard => motherboard;
@@ -17,6 +20,9 @@ public class PCAssemblyState : MonoBehaviour
     public PCComponent Gpu => gpu;
     public int InstalledRamCount => installedRamCount;
     public int InstalledStorageCount => installedStorageCount;
+    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledRam => installedRam;
+    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledStorage => installedStorage;
+    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledCoolers => installedCoolers;
 
     public void RegisterInstalled(PCComponent component)
     {
@@ -43,10 +49,24 @@ public class PCAssemblyState : MonoBehaviour
                 gpu = component;
                 break;
             case PCComponentType.RAM:
-                installedRamCount++;
+                if (!installedRam.Contains(component))
+                {
+                    installedRam.Add(component);
+                }
+                installedRamCount = installedRam.Count;
                 break;
             case PCComponentType.Storage:
-                installedStorageCount++;
+                if (!installedStorage.Contains(component))
+                {
+                    installedStorage.Add(component);
+                }
+                installedStorageCount = installedStorage.Count;
+                break;
+            case PCComponentType.CPUFan:
+                if (!installedCoolers.Contains(component))
+                {
+                    installedCoolers.Add(component);
+                }
                 break;
         }
     }
@@ -76,10 +96,15 @@ public class PCAssemblyState : MonoBehaviour
                 if (gpu == component) gpu = null;
                 break;
             case PCComponentType.RAM:
-                installedRamCount = Mathf.Max(0, installedRamCount - 1);
+                installedRam.Remove(component);
+                installedRamCount = installedRam.Count;
                 break;
             case PCComponentType.Storage:
-                installedStorageCount = Mathf.Max(0, installedStorageCount - 1);
+                installedStorage.Remove(component);
+                installedStorageCount = installedStorage.Count;
+                break;
+            case PCComponentType.CPUFan:
+                installedCoolers.Remove(component);
                 break;
         }
     }
@@ -91,5 +116,32 @@ public class PCAssemblyState : MonoBehaviour
                psu != null &&
                gpu != null &&
                installedStorageCount > 0;
+    }
+
+    public System.Collections.Generic.List<PCComponent> GetInstalledComponentsSnapshot()
+    {
+        var list = new System.Collections.Generic.List<PCComponent>(16);
+        if (caseComponent != null) list.Add(caseComponent);
+        if (motherboard != null) list.Add(motherboard);
+        if (psu != null) list.Add(psu);
+        if (cpu != null) list.Add(cpu);
+        if (gpu != null) list.Add(gpu);
+
+        for (int i = 0; i < installedRam.Count; i++)
+        {
+            if (installedRam[i] != null) list.Add(installedRam[i]);
+        }
+
+        for (int i = 0; i < installedStorage.Count; i++)
+        {
+            if (installedStorage[i] != null) list.Add(installedStorage[i]);
+        }
+
+        for (int i = 0; i < installedCoolers.Count; i++)
+        {
+            if (installedCoolers[i] != null) list.Add(installedCoolers[i]);
+        }
+
+        return list;
     }
 }

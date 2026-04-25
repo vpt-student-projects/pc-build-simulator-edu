@@ -20,10 +20,10 @@ public class BuildMenuUI : MonoBehaviour
     [Header("Catalog (PostgreSQL ? JSON)")]
     [SerializeField] private ComponentCatalogService catalogService;
     [SerializeField] private PcPrefabCatalogMap prefabCatalogMap;
-    [Tooltip("???? ? ???????? ???? ?????? ? ?????? ????? ???????? ќ ???? ???????? ?? ??/JSON, ????? ?? ?????? ????.")]
+    [Tooltip("Если в каталоге есть данные и задана карта префабов, элементы берутся из БД/JSON, иначе используется список ниже.")]
     [SerializeField] private bool preferCatalogOverManualList = true;
 
-    [Header("Legacy: ?????? ?????? (???? ??????? ????)")]
+    [Header("Legacy: список деталей (если каталог пуст)")]
     [SerializeField] private List<BuildingPartData> allParts = new List<BuildingPartData>();
 
     [Header("Drag & Drop")]
@@ -41,7 +41,7 @@ public class BuildMenuUI : MonoBehaviour
     {
         if (cardPrefab == null || contentParent == null || tabsGroup == null)
         {
-            Debug.LogError("BuildMenuUI: ?? ??? ?????? ????????? ? ??????????.");
+            Debug.LogError("BuildMenuUI: не все ссылки назначены в инспекторе.");
             return;
         }
 
@@ -55,14 +55,14 @@ public class BuildMenuUI : MonoBehaviour
         if (powerFilterDropdown != null)
         {
             powerFilterDropdown.ClearOptions();
-            powerFilterDropdown.AddOptions(new List<string> { "???", "0-25%", "25-50%", "50-75%", "75-100%" });
+            powerFilterDropdown.AddOptions(new List<string> { "Все", "0-25%", "25-50%", "50-75%", "75-100%" });
             powerFilterDropdown.onValueChanged.AddListener(OnPowerFilterChanged);
         }
 
         if (nameFilterDropdown != null)
         {
             nameFilterDropdown.ClearOptions();
-            nameFilterDropdown.AddOptions(new List<string> { "?? ?????????", "?? ???????? (?-?)", "?? ???????? (?-?)", "?? ???????? (????.)", "?? ???????? (????.)" });
+            nameFilterDropdown.AddOptions(new List<string> { "По умолчанию", "По имени (А-Я)", "По имени (Я-А)", "По мощности (возр.)", "По мощности (убыв.)" });
             nameFilterDropdown.onValueChanged.AddListener(OnNameSortChanged);
         }
 
@@ -117,36 +117,38 @@ public class BuildMenuUI : MonoBehaviour
         string n = toggleName.ToLowerInvariant().Trim();
         switch (n)
         {
-            case "???":
+            case "все":
             case "all":
                 return "ALL";
-            case "????":
+            case "проц":
+            case "процессор":
             case "cpu":
                 return "CPU";
-            case "??":
+            case "озу":
             case "ram":
                 return "RAM";
-            case "?":
+            case "бп":
             case "psu":
                 return "PSU";
-            case "?????????":
+            case "материнка":
+            case "материнская плата":
             case "motherboard":
                 return "MOTHERBOARD";
-            case "??????":
+            case "корпус":
             case "case":
                 return "CASE";
-            case "??????????":
+            case "видеокарта":
             case "gpu":
                 return "GPU";
-            case "????????":
+            case "накопитель":
             case "storage":
                 return "STORAGE";
-            case "?????":
+            case "кулер":
             case "cpu_cooler":
             case "cooler":
                 return "CPU_COOLER";
             default:
-                Debug.LogWarning($"BuildMenuUI: ??????????? ??? ??????? '{toggleName}', ???????????? ??? ??? ?????????.");
+                Debug.LogWarning($"BuildMenuUI: неизвестное имя таба '{toggleName}', используется как код категории.");
                 return toggleName.ToUpperInvariant();
         }
     }
@@ -297,7 +299,7 @@ public class BuildMenuUI : MonoBehaviour
 
             if (filtered.Count == 0)
             {
-                Debug.LogWarning("BuildMenuUI: ??????? ????????, ?? ????? ???????? ??? ?????. ????????? ???? ????????? ? ???????.");
+                Debug.LogWarning("BuildMenuUI: каталог активен, но не найдено деталей по фильтрам. Проверьте коды категорий и фильтры.");
             }
 
             return;
@@ -330,7 +332,7 @@ public class BuildMenuUI : MonoBehaviour
         BuildingPart prefab = prefabCatalogMap.GetBuildingPrefab(data.CategoryCode);
         if (prefab == null)
         {
-            Debug.LogWarning($"BuildMenuUI: ??? ??????? ? PcPrefabCatalogMap ??? ????????? '{data.CategoryCode}' (????????? id={data.DatabaseId}).");
+            Debug.LogWarning($"BuildMenuUI: для категории '{data.CategoryCode}' не задан префаб в PcPrefabCatalogMap (компонент id={data.DatabaseId}).");
             return;
         }
 
