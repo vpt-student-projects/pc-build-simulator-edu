@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(PCComponent))]
 public class PCComponentInfoClickTarget : MonoBehaviour
@@ -10,13 +11,30 @@ public class PCComponentInfoClickTarget : MonoBehaviour
         component = GetComponent<PCComponent>();
     }
 
-    private void OnMouseDown()
+    private void OnMouseOver()
     {
-        if (component == null || ComponentInfoPopup.Instance == null)
+        if (component == null)
         {
             return;
         }
 
-        ComponentInfoPopup.Instance.Show(component);
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            if (ComponentRemovalDialog.Instance != null)
+            {
+                ComponentRemovalDialog.Instance.RequestRemove(component);
+            }
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(0) && ComponentInfoPopup.Instance != null)
+        {
+            ComponentInfoPopup.Instance.Show(component);
+        }
     }
 }
