@@ -281,6 +281,15 @@ public class BuildModeDragController : MonoBehaviour
             return false;
         }
 
+        PCAssemblyState assembly = Object.FindFirstObjectByType<PCAssemblyState>();
+        if (draggingComponent.ComponentType == PCComponentType.Case &&
+            assembly != null &&
+            !assembly.CanInstallCase())
+        {
+            ShowPlacementFeedback("Корпус уже установлен. Можно установить только один корпус.");
+            return false;
+        }
+
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
         BuildSlot slot = FindSlotUnderCursor(false);
         if (slot == null)

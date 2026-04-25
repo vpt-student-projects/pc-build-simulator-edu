@@ -13,19 +13,62 @@ public class PCAssemblyState : MonoBehaviour
     [SerializeField] private System.Collections.Generic.List<PCComponent> installedStorage = new System.Collections.Generic.List<PCComponent>();
     [SerializeField] private System.Collections.Generic.List<PCComponent> installedCoolers = new System.Collections.Generic.List<PCComponent>();
 
-    public PCComponent Case => caseComponent;
+    public PCComponent Case
+    {
+        get
+        {
+            PruneMissingReferences();
+            return caseComponent;
+        }
+    }
     public PCComponent Motherboard => motherboard;
     public PCComponent Psu => psu;
     public PCComponent Cpu => cpu;
     public PCComponent Gpu => gpu;
-    public int InstalledRamCount => installedRamCount;
-    public int InstalledStorageCount => installedStorageCount;
-    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledRam => installedRam;
-    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledStorage => installedStorage;
-    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledCoolers => installedCoolers;
+    public int InstalledRamCount
+    {
+        get
+        {
+            PruneMissingReferences();
+            return installedRamCount;
+        }
+    }
+    public int InstalledStorageCount
+    {
+        get
+        {
+            PruneMissingReferences();
+            return installedStorageCount;
+        }
+    }
+    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledRam
+    {
+        get
+        {
+            PruneMissingReferences();
+            return installedRam;
+        }
+    }
+    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledStorage
+    {
+        get
+        {
+            PruneMissingReferences();
+            return installedStorage;
+        }
+    }
+    public System.Collections.Generic.IReadOnlyList<PCComponent> InstalledCoolers
+    {
+        get
+        {
+            PruneMissingReferences();
+            return installedCoolers;
+        }
+    }
 
     public void RegisterInstalled(PCComponent component)
     {
+        PruneMissingReferences();
         if (component == null)
         {
             return;
@@ -73,6 +116,7 @@ public class PCAssemblyState : MonoBehaviour
 
     public void RegisterRemoved(PCComponent component)
     {
+        PruneMissingReferences();
         if (component == null)
         {
             return;
@@ -111,6 +155,7 @@ public class PCAssemblyState : MonoBehaviour
 
     public bool IsAssemblyComplete()
     {
+        PruneMissingReferences();
         return cpu != null &&
                installedRamCount > 0 &&
                psu != null &&
@@ -118,8 +163,15 @@ public class PCAssemblyState : MonoBehaviour
                installedStorageCount > 0;
     }
 
+    public bool CanInstallCase()
+    {
+        PruneMissingReferences();
+        return caseComponent == null;
+    }
+
     public System.Collections.Generic.List<PCComponent> GetInstalledComponentsSnapshot()
     {
+        PruneMissingReferences();
         var list = new System.Collections.Generic.List<PCComponent>(16);
         if (caseComponent != null) list.Add(caseComponent);
         if (motherboard != null) list.Add(motherboard);
@@ -143,5 +195,35 @@ public class PCAssemblyState : MonoBehaviour
         }
 
         return list;
+    }
+
+    private void PruneMissingReferences()
+    {
+        installedRam.RemoveAll(item => item == null);
+        installedStorage.RemoveAll(item => item == null);
+        installedCoolers.RemoveAll(item => item == null);
+        installedRamCount = installedRam.Count;
+        installedStorageCount = installedStorage.Count;
+
+        if (caseComponent == null)
+        {
+            caseComponent = null;
+        }
+        if (motherboard == null)
+        {
+            motherboard = null;
+        }
+        if (psu == null)
+        {
+            psu = null;
+        }
+        if (cpu == null)
+        {
+            cpu = null;
+        }
+        if (gpu == null)
+        {
+            gpu = null;
+        }
     }
 }
