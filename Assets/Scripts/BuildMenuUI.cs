@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using EasyBuildSystem.Features.Runtime.Buildings.Placer;
 using EasyBuildSystem.Features.Runtime.Buildings.Part;
+using System;
 
 public class BuildMenuUI : MonoBehaviour
 {
@@ -346,7 +347,8 @@ public class BuildMenuUI : MonoBehaviour
         }
         dragItem.InitializeFromMenu(dragController, runtimePc, prefab);
 
-        ApplyCardVisuals(card, data.Name, data.Description, WattsToUiPercent(data.PowerWatts), null);
+        Sprite icon = LoadCatalogIcon(data.IconPath);
+        ApplyCardVisuals(card, data.Name, data.Description, WattsToUiPercent(data.PowerWatts), icon);
 
         Transform buttonTransform = card.transform.Find("UseButton");
         if (buttonTransform != null)
@@ -465,6 +467,56 @@ public class BuildMenuUI : MonoBehaviour
                 powerText.text = $"{Mathf.RoundToInt(powerPercent)}%";
             }
         }
+    }
+
+    private static Sprite LoadCatalogIcon(string iconPath)
+    {
+        if (string.IsNullOrWhiteSpace(iconPath))
+        {
+            return null;
+        }
+
+        string normalized = iconPath.Trim().Replace('\\', '/');
+        if (normalized.StartsWith("Assets/Resources/", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring("Assets/Resources/".Length);
+        }
+        else if (normalized.StartsWith("Resources/", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring("Resources/".Length);
+        }
+
+        if (normalized.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(0, normalized.Length - 4);
+        }
+        else if (normalized.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(0, normalized.Length - 4);
+        }
+        else if (normalized.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase))
+        {
+            normalized = normalized.Substring(0, normalized.Length - 5);
+        }
+
+        Sprite sprite = Resources.Load<Sprite>(normalized);
+        if (sprite != null)
+        {
+            return sprite;
+        }
+
+        // Fallback for values like "cpu1" when files are in Resources/icons/.
+        if (!normalized.StartsWith("icons/", StringComparison.OrdinalIgnoreCase))
+        {
+            sprite = Resources.Load<Sprite>("icons/" + normalized);
+            if (sprite != null)
+            {
+                return sprite;
+            }
+        }
+
+        Debug.LogWarning($"BuildMenuUI: icon not found in Resources for path '{iconPath}'.");
+        return null;
     }
 
     private void ClearCards()

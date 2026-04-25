@@ -92,25 +92,39 @@ public class BuildSlot : MonoBehaviour
 
     public bool CanPlace(PCComponent component)
     {
+        return string.IsNullOrEmpty(GetPlacementError(component));
+    }
+
+    public string GetPlacementError(PCComponent component)
+    {
         if (component == null || IsOccupied)
         {
-            return false;
+            return component == null
+                ? "Не удалось определить устанавливаемую деталь."
+                : $"Слот {slotType} уже занят.";
         }
 
         if (!allowedComponentTypes.Contains(component.ComponentType))
         {
             if (allowedComponentTypes.Count > 0)
             {
-                return false;
+                return $"Деталь {component.ComponentType} нельзя установить в слот {slotType}.";
             }
         }
 
         if (!component.IsCompatibleWith(slotType))
         {
-            return false;
+            return $"Деталь {component.ComponentType} не подходит к слоту {slotType}.";
         }
 
-        return PCCompatibilityService.CanPlaceComponent(component, this);
+        if (!PCCompatibilityService.TryGetCompatibilityError(component, this, out string compatibilityError))
+        {
+            return string.IsNullOrWhiteSpace(compatibilityError)
+                ? "Компонент несовместим с текущей сборкой."
+                : compatibilityError;
+        }
+
+        return string.Empty;
     }
 
     public bool Place(PCComponent component)

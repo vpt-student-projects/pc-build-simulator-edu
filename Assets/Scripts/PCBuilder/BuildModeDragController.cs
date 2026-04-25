@@ -3,6 +3,8 @@ using EasyBuildSystem.Features.Runtime.Buildings.Placer;
 using EasyBuildSystem.Features.Runtime.Buildings.Placer.InputHandler;
 using EasyBuildSystem.Examples.Bases.Scripts.FirstPerson;
 using UnityEngine;
+using TMPro;
+using System.Collections;
 
 public class BuildModeDragController : MonoBehaviour
 {
@@ -16,6 +18,10 @@ public class BuildModeDragController : MonoBehaviour
     [SerializeField] private LayerMask casePlacementMask = ~0;
     [SerializeField] private float caseSurfaceOffset = 0.02f;
     [SerializeField] private PcPrefabCatalogMap prefabCatalogMap;
+    [Header("Placement feedback")]
+    [SerializeField] private TMP_Text placementFeedbackText;
+    [SerializeField] private CanvasGroup placementFeedbackGroup;
+    [SerializeField] private float placementFeedbackDuration = 3f;
 
     private bool isDragging;
     private PCComponent draggingComponent;
@@ -24,6 +30,7 @@ public class BuildModeDragController : MonoBehaviour
     private BaseInputHandler cachedInputHandler;
     private BuildingPlacer.RaycastSettings.RaycastType cachedRaycastType;
     private BuildSlot currentTargetSlot;
+    private Coroutine feedbackRoutine;
 
     private void Awake()
     {
@@ -204,7 +211,7 @@ public class BuildModeDragController : MonoBehaviour
     private void UpdateSlotsHighlight()
     {
         BuildSlot[] slots = GetNearbySlots();
-        BuildSlot bestSlot = FindSlotUnderCursor();
+        BuildSlot bestSlot = FindSlotUnderCursor(false);
 
         for (int i = 0; i < slots.Length; i++)
         {
@@ -274,19 +281,26 @@ public class BuildModeDragController : MonoBehaviour
         }
 
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-        BuildSlot slot = FindSlotUnderCursor();
+        BuildSlot slot = FindSlotUnderCursor(false);
         if (slot == null)
         {
             slot = currentTargetSlot;
         }
 
-        if (slot == null || !slot.CanPlace(draggingComponent))
+        if (slot == null)
         {
             if (draggingComponent.ComponentType == PCComponentType.Case)
             {
                 return TryPlaceCaseOnSurface(ray);
             }
 
+            ShowPlacementFeedback("Наведитесь на подходящий слот для установки детали.");
+            return false;
+        }
+
+        if (!slot.CanPlace(draggingComponent))
+        {
+            ShowPlacementFeedback(slot.GetPlacementError(draggingComponent));
             return false;
         }
 
@@ -309,6 +323,11 @@ public class BuildModeDragController : MonoBehaviour
     }
 
     private BuildSlot FindSlotUnderCursor()
+    {
+        return FindSlotUnderCursor(true);
+    }
+
+    private BuildSlot FindSlotUnderCursor(bool requireCanPlace)
     {
         if (mainCamera == null || draggingComponent == null)
         {
@@ -333,7 +352,7 @@ public class BuildModeDragController : MonoBehaviour
                 continue;
             }
 
-            if (!slot.CanPlace(draggingComponent))
+            if (requireCanPlace && !slot.CanPlace(draggingComponent))
             {
                 continue;
             }
@@ -424,5 +443,34 @@ public class BuildModeDragController : MonoBehaviour
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
+    }
+
+    private void ShowPlacementFeedback(string message)
+    {
+        if (placementFeedbackText == null || placementFeedbackGroup == null || string.IsNullOrWhiteSpace(message))
+        {
+            return;
+        }
+
+        if (feedbackRoutine != null)
+        {
+            StopCoroutine(feedbackRoutine);
+        }
+
+        feedbackRoutine = StartCoroutine(ShowPlacementFeedbackRoutine(message));
+    }
+
+    private IEnumerator ShowPlacementFeedbackRoutine(string message)
+    {
+        placementFeedbackText.text = message;
+        placementFeedbackGroup.alpha = 1f;
+        placementFeedbackGroup.interactable = false;
+        placementFeedbackGroup.blocksRaycasts = false;
+
+        float waitFor = Mathf.Max(0.75f, placementFeedbackDuration);
+        yield return new WaitForSeconds(waitFor);
+
+        placementFeedbackGroup.alpha = 0f;
+        feedbackRoutine = null;
     }
 }
