@@ -20,6 +20,7 @@ public class BuildModeDragController : MonoBehaviour
     [SerializeField] private PcPrefabCatalogMap prefabCatalogMap;
     [Header("Placement feedback")]
     [SerializeField] private TMP_Text placementFeedbackText;
+    [SerializeField] private TMP_Text placementFeedbackTimerText;
     [SerializeField] private CanvasGroup placementFeedbackGroup;
     [SerializeField] private float placementFeedbackDuration = 3f;
 
@@ -468,14 +469,28 @@ public class BuildModeDragController : MonoBehaviour
     private IEnumerator ShowPlacementFeedbackRoutine(string message)
     {
         placementFeedbackText.text = message;
+        float remaining = Mathf.Max(0.75f, placementFeedbackDuration);
         placementFeedbackGroup.alpha = 1f;
         placementFeedbackGroup.interactable = false;
         placementFeedbackGroup.blocksRaycasts = false;
 
-        float waitFor = Mathf.Max(0.75f, placementFeedbackDuration);
-        yield return new WaitForSeconds(waitFor);
+        while (remaining > 0f)
+        {
+            if (placementFeedbackTimerText != null)
+            {
+                placementFeedbackTimerText.text = Mathf.CeilToInt(remaining).ToString();
+            }
+
+            placementFeedbackGroup.alpha = remaining <= 1f ? Mathf.Clamp01(remaining) : 1f;
+            remaining -= Time.unscaledDeltaTime;
+            yield return null;
+        }
 
         placementFeedbackGroup.alpha = 0f;
+        if (placementFeedbackTimerText != null)
+        {
+            placementFeedbackTimerText.text = string.Empty;
+        }
         feedbackRoutine = null;
     }
 }

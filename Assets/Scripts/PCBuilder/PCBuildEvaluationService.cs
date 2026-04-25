@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class PCBuildEvaluationService : MonoBehaviour
 {
@@ -19,7 +21,43 @@ public class PCBuildEvaluationService : MonoBehaviour
     [Header("Optional references")]
     [SerializeField] private PCAssemblyState assemblyState;
 
+    [Header("Evaluation UI - Confirm")]
+    [SerializeField] private GameObject confirmDialogRoot;
+    [SerializeField] private TMP_Text confirmDialogText;
+    [SerializeField] private Button confirmYesButton;
+    [SerializeField] private Button confirmNoButton;
+
+    [Header("Evaluation UI - Result")]
+    [SerializeField] private GameObject resultDialogRoot;
+    [SerializeField] private TMP_Text resultTitleText;
+    [SerializeField] private TMP_Text resultBodyText;
+    [SerializeField] private Button resultCloseButton;
+
     public PCBuildEvaluationResult LastResult { get; private set; }
+
+    private void Awake()
+    {
+        if (confirmYesButton != null)
+        {
+            confirmYesButton.onClick.RemoveListener(ConfirmEvaluateFromDialog);
+            confirmYesButton.onClick.AddListener(ConfirmEvaluateFromDialog);
+        }
+
+        if (confirmNoButton != null)
+        {
+            confirmNoButton.onClick.RemoveListener(CancelEvaluateFromDialog);
+            confirmNoButton.onClick.AddListener(CancelEvaluateFromDialog);
+        }
+
+        if (resultCloseButton != null)
+        {
+            resultCloseButton.onClick.RemoveListener(CloseResultDialog);
+            resultCloseButton.onClick.AddListener(CloseResultDialog);
+        }
+
+        HideConfirmDialog();
+        CloseResultDialog();
+    }
 
     public PCBuildEvaluationResult EvaluateCurrentBuild()
     {
@@ -177,6 +215,51 @@ public class PCBuildEvaluationService : MonoBehaviour
 
     public void EvaluateAndLog()
     {
+        // If UI is configured, start with confirmation dialog.
+        if (confirmDialogRoot != null)
+        {
+            if (confirmDialogText != null)
+            {
+                confirmDialogText.text = "Вы точно хотите проверить сборку?";
+            }
+
+            confirmDialogRoot.SetActive(true);
+            return;
+        }
+
+        // Fallback (without UI): direct evaluation to logs.
+        EvaluateAndLogImmediate();
+    }
+
+    public void ConfirmEvaluateFromDialog()
+    {
+        HideConfirmDialog();
+        EvaluateAndLogImmediate();
+    }
+
+    public void CancelEvaluateFromDialog()
+    {
+        HideConfirmDialog();
+    }
+
+    public void CloseResultDialog()
+    {
+        if (resultDialogRoot != null)
+        {
+            resultDialogRoot.SetActive(false);
+        }
+    }
+
+    private void HideConfirmDialog()
+    {
+        if (confirmDialogRoot != null)
+        {
+            confirmDialogRoot.SetActive(false);
+        }
+    }
+
+    private void EvaluateAndLogImmediate()
+    {
         PCBuildEvaluationResult result = EvaluateCurrentBuild();
         if (result == null)
         {
@@ -186,13 +269,36 @@ public class PCBuildEvaluationService : MonoBehaviour
         if (!result.CanBoot)
         {
             Debug.LogWarning($"Build Evaluation: {result.Summary}");
+            ShowResultDialog("Ошибка проверки сборки", result.Summary);
             return;
         }
 
-        Debug.Log(
+        string logMessage =
             $"Build Evaluation: score {result.Score100}/100 ({result.Rating}). " +
             $"Power: {result.TotalPowerDrawW}W, PSU: {result.InstalledPsuW}W, recommended: {result.RecommendedPsuW}W. " +
-            $"{result.Summary}");
+            $"{result.Summary}";
+        Debug.Log(logMessage);
+        ShowResultDialog($"Итог сборки: {result.Score100}/100 ({result.Rating})", result.Summary);
+    }
+
+    private void ShowResultDialog(string title, string body)
+    {
+        if (resultDialogRoot == null)
+        {
+            return;
+        }
+
+        if (resultTitleText != null)
+        {
+            resultTitleText.text = title;
+        }
+
+        if (resultBodyText != null)
+        {
+            resultBodyText.text = body;
+        }
+
+        resultDialogRoot.SetActive(true);
     }
 
     private static float TierAndPowerScore(float tierNorm, int powerWatts, float maxRefPower)

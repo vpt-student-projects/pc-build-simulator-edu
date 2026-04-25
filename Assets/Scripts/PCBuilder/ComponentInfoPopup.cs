@@ -7,6 +7,7 @@ public class ComponentInfoPopup : MonoBehaviour
 {
     [Header("Display")]
     [SerializeField] private float visibleDurationSeconds = 7f;
+    [SerializeField] private TMP_Text closeTimerText;
     [SerializeField] private CanvasGroup popupGroup;
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private TMP_Text bodyText;
@@ -82,6 +83,10 @@ public class ComponentInfoPopup : MonoBehaviour
         popupGroup.alpha = 0f;
         popupGroup.interactable = false;
         popupGroup.blocksRaycasts = false;
+        if (closeTimerText != null)
+        {
+            closeTimerText.text = string.Empty;
+        }
 
         if (hideRoutine != null)
         {
@@ -181,8 +186,23 @@ public class ComponentInfoPopup : MonoBehaviour
 
     private IEnumerator AutoHideAfterDelay()
     {
-        float delay = Mathf.Max(0.1f, visibleDurationSeconds);
-        yield return new WaitForSeconds(delay);
+        float remaining = Mathf.Max(0.1f, visibleDurationSeconds);
+        while (remaining > 0f)
+        {
+            if (closeTimerText != null)
+            {
+                closeTimerText.text = Mathf.CeilToInt(remaining).ToString();
+            }
+
+            if (popupGroup != null)
+            {
+                popupGroup.alpha = remaining <= 1f ? Mathf.Clamp01(remaining) : 1f;
+            }
+
+            remaining -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+
         Hide();
     }
 }
