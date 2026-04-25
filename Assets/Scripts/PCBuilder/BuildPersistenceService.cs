@@ -2,14 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using UnityEngine;
 using EasyBuildSystem.Features.Runtime.Buildings.Part;
 
 public class BuildPersistenceService : MonoBehaviour
 {
+    private const string SessionUserPrefsKey = "pc_builder_session_user_id";
+    private static int s_SessionUserId = -1;
+
     [Header("DB")]
     [SerializeField] private string postgresConnectionString = string.Empty;
     [SerializeField] private int defaultUserId = 1;
+    [SerializeField] private int currentUserId = -1;
 
     [Header("Dependencies")]
     [SerializeField] private PCAssemblyState assemblyState;
@@ -19,9 +25,192 @@ public class BuildPersistenceService : MonoBehaviour
     [Header("Scene")]
     [SerializeField] private Transform loosePlacementRoot;
 
+    public int CurrentUserId => currentUserId > 0 ? currentUserId : s_SessionUserId;
+    public bool HasAuthenticatedUser => CurrentUserId > 0;
+
+    private void Awake()
+    {
+        if (currentUserId > 0)
+        {
+            s_SessionUserId = currentUserId;
+        }
+        else if (s_SessionUserId <= 0 && PlayerPrefs.HasKey(SessionUserPrefsKey))
+        {
+            int restored = PlayerPrefs.GetInt(SessionUserPrefsKey, -1);
+            if (restored > 0)
+            {
+                s_SessionUserId = restored;
+                currentUserId = restored;
+            }
+        }
+    }
+
+    public void SetCurrentUserId(int userId)
+    {
+        currentUserId = userId > 0 ? userId : -1;
+        s_SessionUserId = currentUserId;
+        if (currentUserId > 0)
+        {
+            PlayerPrefs.SetInt(SessionUserPrefsKey, currentUserId);
+        }
+        else
+        {
+            PlayerPrefs.DeleteKey(SessionUserPrefsKey);
+        }
+        PlayerPrefs.Save();
+    }
+
+    public bool RegisterUser(string username, string password, out string errorMessage)
+    {
+        errorMessage = string.Empty;
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            errorMessage = "Введите логин.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(password) || password.Length < 4)
+        {
+            errorMessage = "Пароль должен быть не короче 4 символов.";
+            return false;
+        }
+
+        if (!TryResolveConnectionString(out string connString))
+        {
+            errorMessage = "Не задана строка подключения к БД.";
+            return false;
+        }
+
+        Type connectionType = FindNpgsqlConnectionType();
+        if (connectionType == null)
+        {
+            errorMessage = "Npgsql не найден.";
+            return false;
+        }
+
+        const string sql = @"
+INSERT INTO users (username, password_hash)
+VALUES (@u, @p)
+RETURNING id;";
+
+        try
+        {
+            using (IDisposable conn = (IDisposable)Activator.CreateInstance(connectionType, connString))
+            {
+                InvokeInstanceMethod(conn, "Open");
+                using (IDisposable cmd = CreateCommand(connectionType, conn, sql))
+                {
+                    AddParameter(cmd, "@u", username.Trim());
+                    AddParameter(cmd, "@p", HashPassword(password));
+                    object scalar = InvokeInstanceMethod(cmd, "ExecuteScalar");
+                    int userId = Convert.ToInt32(scalar);
+                    SetCurrentUserId(userId);
+                    return true;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            errorMessage = "Не удалось зарегистрировать пользователя: " + e.Message;
+            Debug.LogWarning($"BuildPersistence RegisterUser: {e.GetType().Name}: {e.Message}\n{e}");
+            return false;
+        }
+    }
+
+    public bool LoginUser(string username, string password, out string errorMessage)
+    {
+        errorMessage = string.Empty;
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "Введите логин и пароль.";
+            return false;
+        }
+
+        if (!TryResolveConnectionString(out string connString))
+        {
+            errorMessage = "Не задана строка подключения к БД.";
+            return false;
+        }
+
+        Type connectionType = FindNpgsqlConnectionType();
+        if (connectionType == null)
+        {
+            errorMessage = "Npgsql не найден.";
+            return false;
+        }
+
+        const string sql = @"
+SELECT id, password_hash
+FROM users
+WHERE username = @u
+LIMIT 1;";
+
+        try
+        {
+            using (IDisposable conn = (IDisposable)Activator.CreateInstance(connectionType, connString))
+            {
+                InvokeInstanceMethod(conn, "Open");
+                using (IDisposable cmd = CreateCommand(connectionType, conn, sql))
+                {
+                    AddParameter(cmd, "@u", username.Trim());
+                    object reader = InvokeInstanceMethod(cmd, "ExecuteReader");
+                    if (reader == null)
+                    {
+                        errorMessage = "Не удалось прочитать пользователя.";
+                        return false;
+                    }
+
+                    try
+                    {
+                        MethodInfo read = GetZeroArgInstanceMethod(reader.GetType(), "Read");
+                        if (read == null || !(bool)read.Invoke(reader, null))
+                        {
+                            errorMessage = "Пользователь не найден.";
+                            return false;
+                        }
+
+                        MethodInfo getOrdinal = FindMethod(reader.GetType(), "GetOrdinal", typeof(string));
+                        MethodInfo isDbNull = FindMethod(reader.GetType(), "IsDBNull", typeof(int));
+                        MethodInfo getInt32 = FindMethod(reader.GetType(), "GetInt32", typeof(int));
+                        MethodInfo getString = FindMethod(reader.GetType(), "GetString", typeof(int));
+                        MethodInfo getValue = FindMethod(reader.GetType(), "GetValue", typeof(int));
+
+                        int id = ReadInt(reader, getOrdinal, isDbNull, getInt32, getValue, "id");
+                        string storedHash = ReadString(reader, getOrdinal, isDbNull, getString, getValue, "password_hash");
+                        string incomingHash = HashPassword(password);
+                        if (!string.Equals(storedHash, incomingHash, StringComparison.Ordinal))
+                        {
+                            errorMessage = "Неверный пароль.";
+                            return false;
+                        }
+
+                        SetCurrentUserId(id);
+                        TryUpdateLastLogin(connectionType, conn, id);
+                        return true;
+                    }
+                    finally
+                    {
+                        (reader as IDisposable)?.Dispose();
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            errorMessage = "Ошибка логина: " + e.Message;
+            Debug.LogWarning($"BuildPersistence LoginUser: {e.GetType().Name}: {e.Message}\n{e}");
+            return false;
+        }
+    }
+
     public List<BuildListItem> GetBuilds()
     {
         var list = new List<BuildListItem>();
+        if (!EnsureAuthenticated("GetBuilds"))
+        {
+            return list;
+        }
+
         if (!TryResolveConnectionString(out string connString))
         {
             return list;
@@ -47,7 +236,7 @@ ORDER BY b.created_at DESC, b.id DESC;";
                 InvokeInstanceMethod(conn, "Open");
                 using (IDisposable cmd = CreateCommand(connectionType, conn, sql))
                 {
-                    AddParameter(cmd, "@uid", defaultUserId);
+                    AddParameter(cmd, "@uid", GetEffectiveUserId());
                     object reader = InvokeInstanceMethod(cmd, "ExecuteReader");
                     if (reader == null)
                     {
@@ -92,6 +281,11 @@ ORDER BY b.created_at DESC, b.id DESC;";
 
     public bool SaveCurrentBuild(string buildName)
     {
+        if (!EnsureAuthenticated("SaveCurrentBuild"))
+        {
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(buildName))
         {
             Debug.LogWarning("BuildPersistence: имя сборки пустое.");
@@ -144,7 +338,7 @@ VALUES
                 int buildId;
                 using (IDisposable cmd = CreateCommand(connectionType, conn, insertBuildSql))
                 {
-                    AddParameter(cmd, "@uid", defaultUserId);
+                    AddParameter(cmd, "@uid", GetEffectiveUserId());
                     AddParameter(cmd, "@name", buildName.Trim());
                     object scalar = InvokeInstanceMethod(cmd, "ExecuteScalar");
                     buildId = Convert.ToInt32(scalar);
@@ -190,6 +384,11 @@ VALUES
 
     public bool DeleteBuild(int buildId)
     {
+        if (!EnsureAuthenticated("DeleteBuild"))
+        {
+            return false;
+        }
+
         if (buildId <= 0)
         {
             return false;
@@ -215,7 +414,7 @@ VALUES
                 using (IDisposable cmd = CreateCommand(connectionType, conn, sql))
                 {
                     AddParameter(cmd, "@id", buildId);
-                    AddParameter(cmd, "@uid", defaultUserId);
+                    AddParameter(cmd, "@uid", GetEffectiveUserId());
                     InvokeInstanceMethod(cmd, "ExecuteNonQuery");
                 }
             }
@@ -452,6 +651,53 @@ ORDER BY id ASC;";
             return false;
         }
         return true;
+    }
+
+    private int GetEffectiveUserId()
+    {
+        return CurrentUserId;
+    }
+
+    private bool EnsureAuthenticated(string operation)
+    {
+        if (CurrentUserId > 0)
+        {
+            return true;
+        }
+
+        Debug.LogWarning($"BuildPersistence {operation}: пользователь не авторизован. " +
+                         $"Операция отклонена (defaultUserId={defaultUserId} больше не используется как fallback).");
+        return false;
+    }
+
+    private static string HashPassword(string password)
+    {
+        using SHA256 sha = SHA256.Create();
+        byte[] bytes = Encoding.UTF8.GetBytes(password ?? string.Empty);
+        byte[] hash = sha.ComputeHash(bytes);
+        var sb = new StringBuilder(hash.Length * 2);
+        for (int i = 0; i < hash.Length; i++)
+        {
+            sb.Append(hash[i].ToString("x2"));
+        }
+        return sb.ToString();
+    }
+
+    private static void TryUpdateLastLogin(Type connectionType, IDisposable conn, int userId)
+    {
+        const string sql = "UPDATE users SET last_login_at = NOW() WHERE id = @id;";
+        try
+        {
+            using (IDisposable cmd = CreateCommand(connectionType, conn, sql))
+            {
+                AddParameter(cmd, "@id", userId);
+                InvokeInstanceMethod(cmd, "ExecuteNonQuery");
+            }
+        }
+        catch
+        {
+            // Non-critical
+        }
     }
 
     private static int PlacementPriority(string slotCode)

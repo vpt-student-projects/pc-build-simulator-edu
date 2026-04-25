@@ -5,6 +5,9 @@ public class BuildMenuController : MonoBehaviour
 {
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private KeyCode toggleKey = KeyCode.Tab;
+    [Header("Optional blockers")]
+    [SerializeField] private GameObject authPageRoot;
+    [SerializeField] private GameObject pauseMenuRoot;
     private Animator menuAnimator;
     private bool isOpen = false;
 
@@ -34,8 +37,38 @@ public class BuildMenuController : MonoBehaviour
     {
         if (Input.GetKeyDown(toggleKey))
         {
+            if (ShouldIgnoreToggle())
+            {
+                return;
+            }
             ToggleMenu();
         }
+    }
+
+    private bool ShouldIgnoreToggle()
+    {
+        if (isOpen)
+        {
+            return false; // allow closing with Tab
+        }
+
+        if (authPageRoot != null && authPageRoot.activeInHierarchy)
+        {
+            return true;
+        }
+
+        if (pauseMenuRoot != null && pauseMenuRoot.activeInHierarchy)
+        {
+            return true;
+        }
+
+        // If some other UI already has unlocked cursor, do not open build menu by Tab.
+        if (Cursor.visible || Cursor.lockState != CursorLockMode.Locked)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public void ToggleMenu()

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Collections;
 using EasyBuildSystem.Examples.Bases.Scripts.FirstPerson;
 using TMPro;
 using UnityEngine;
@@ -9,6 +10,7 @@ public class MainPauseMenuController : MonoBehaviour
     [Header("Root")]
     [SerializeField] private GameObject mainMenuRoot;
     [SerializeField] private KeyCode openMenuKey = KeyCode.Escape;
+    [SerializeField] private bool requireAuthentication = true;
 
     [Header("Pages")]
     [SerializeField] private GameObject mainPageRoot;
@@ -26,6 +28,8 @@ public class MainPauseMenuController : MonoBehaviour
 
     private readonly List<Resolution> resolutions = new List<Resolution>();
     private bool isOpen;
+    private bool isAuthenticated;
+    private Coroutine forceCursorLockRoutine;
 
     private void Awake()
     {
@@ -35,11 +39,17 @@ public class MainPauseMenuController : MonoBehaviour
 
         SetupResolutions();
         SetupSensitivity();
+        isAuthenticated = !requireAuthentication;
         CloseAllMenus();
     }
 
     private void Update()
     {
+        if (requireAuthentication && !isAuthenticated)
+        {
+            return;
+        }
+
         if (Input.GetKeyDown(openMenuKey))
         {
             ToggleMenu();
@@ -54,10 +64,24 @@ public class MainPauseMenuController : MonoBehaviour
 
     public void OpenMainMenu()
     {
+        if (requireAuthentication && !isAuthenticated)
+        {
+            return;
+        }
+
         isOpen = true;
         if (mainMenuRoot != null) mainMenuRoot.SetActive(true);
         ShowPage(mainPageRoot);
         LockGameplay(true);
+    }
+
+    public void SetAuthenticated(bool value)
+    {
+        isAuthenticated = value;
+        if (!value)
+        {
+            CloseAllMenus();
+        }
     }
 
     public void OnClickStart()
@@ -115,7 +139,16 @@ public class MainPauseMenuController : MonoBehaviour
         isOpen = false;
         if (mainMenuRoot != null) mainMenuRoot.SetActive(false);
         ShowPage(null);
-        LockGameplay(false);
+        if (requireAuthentication && !isAuthenticated)
+        {
+            // Пока пользователь не авторизован, курсор должен оставаться свободным для Auth UI.
+            LockGameplay(true);
+        }
+        else
+        {
+            LockGameplay(false);
+            ForceGameplayCursorLock();
+        }
     }
 
     private void ShowPage(GameObject page)
@@ -136,11 +169,56 @@ public class MainPauseMenuController : MonoBehaviour
         {
             firstPersonCamera.LockCameraInput(locked);
         }
+        else
+        {
+            Cursor.lockState = locked ? CursorLockMode.None : CursorLockMode.Locked;
+            Cursor.visible = locked;
+        }
 
         if (firstPersonController != null)
         {
             firstPersonController.enabled = !locked;
         }
+
+        if (!locked)
+        {
+            // Safety: force lock/hide after closing Esc menu.
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+    }
+
+    private void ForceGameplayCursorLock()
+    {
+        if (forceCursorLockRoutine != null)
+        {
+            StopCoroutine(forceCursorLockRoutine);
+        }
+
+        forceCursorLockRoutine = StartCoroutine(ForceGameplayCursorLockRoutine());
+    }
+
+    private IEnumerator ForceGameplayCursorLockRoutine()
+    {
+        // Some UI/input scripts may unlock cursor right after menu close.
+        // Re-apply lock for a short period to stabilize gameplay state.
+        const int frames = 3;
+        for (int i = 0; i < frames; i++)
+        {
+            yield return null;
+
+            if (requireAuthentication && !isAuthenticated)
+            {
+                // During auth flow cursor must stay unlocked for UI.
+                forceCursorLockRoutine = null;
+                yield break;
+            }
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
+        forceCursorLockRoutine = null;
     }
 
     private void SetupResolutions()

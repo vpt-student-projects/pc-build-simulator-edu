@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class BuildsPanelUIController : MonoBehaviour
 {
+    private const string SessionUserPrefsKey = "pc_builder_session_user_id";
     [SerializeField] private BuildPersistenceService persistenceService;
     [SerializeField] private TMP_Dropdown buildsDropdown;
     [SerializeField] private TMP_InputField saveNameInput;
@@ -18,6 +19,7 @@ public class BuildsPanelUIController : MonoBehaviour
 
     private void Awake()
     {
+        ResolvePersistenceService();
         if (refreshButton != null) refreshButton.onClick.AddListener(RefreshList);
         if (saveButton != null) saveButton.onClick.AddListener(SaveCurrent);
         if (loadButton != null) loadButton.onClick.AddListener(LoadSelected);
@@ -31,9 +33,18 @@ public class BuildsPanelUIController : MonoBehaviour
 
     public void RefreshList()
     {
+        ResolvePersistenceService();
         if (persistenceService == null || buildsDropdown == null)
         {
             SetStatus("Не назначен persistenceService или dropdown.");
+            return;
+        }
+        if (!persistenceService.HasAuthenticatedUser)
+        {
+            items.Clear();
+            buildsDropdown.ClearOptions();
+            buildsDropdown.AddOptions(new List<string> { "Сначала войдите в аккаунт" });
+            SetStatus("Требуется авторизация.");
             return;
         }
 
@@ -54,13 +65,19 @@ public class BuildsPanelUIController : MonoBehaviour
 
         buildsDropdown.AddOptions(opts);
         buildsDropdown.value = 0;
-        SetStatus($"Загружено записей: {items.Count}");
+        SetStatus($"Загружено записей: {items.Count} (userId={persistenceService.CurrentUserId})");
     }
 
     public void SaveCurrent()
     {
+        ResolvePersistenceService();
         if (persistenceService == null)
         {
+            return;
+        }
+        if (!persistenceService.HasAuthenticatedUser)
+        {
+            SetStatus("Сначала войдите в аккаунт.");
             return;
         }
 
@@ -77,8 +94,14 @@ public class BuildsPanelUIController : MonoBehaviour
 
     public void LoadSelected()
     {
+        ResolvePersistenceService();
         if (persistenceService == null)
         {
+            return;
+        }
+        if (!persistenceService.HasAuthenticatedUser)
+        {
+            SetStatus("Сначала войдите в аккаунт.");
             return;
         }
 
@@ -95,8 +118,14 @@ public class BuildsPanelUIController : MonoBehaviour
 
     public void DeleteSelected()
     {
+        ResolvePersistenceService();
         if (persistenceService == null)
         {
+            return;
+        }
+        if (!persistenceService.HasAuthenticatedUser)
+        {
+            SetStatus("Сначала войдите в аккаунт.");
             return;
         }
 
@@ -128,6 +157,61 @@ public class BuildsPanelUIController : MonoBehaviour
         if (statusText != null)
         {
             statusText.text = message;
+        }
+    }
+
+    private void ResolvePersistenceService()
+    {
+        if (persistenceService != null && persistenceService.HasAuthenticatedUser)
+        {
+            return;
+        }
+
+        BuildPersistenceService[] all = FindObjectsByType<BuildPersistenceService>(FindObjectsSortMode.None);
+        BuildPersistenceService first = null;
+        for (int i = 0; i < all.Length; i++)
+        {
+            if (all[i] == null)
+            {
+                continue;
+            }
+
+            first ??= all[i];
+            if (all[i].HasAuthenticatedUser)
+            {
+                persistenceService = all[i];
+                return;
+            }
+        }
+
+        // Recovery path: if user id exists in session prefs, sync it to all services.
+        if (PlayerPrefs.HasKey(SessionUserPrefsKey))
+        {
+            int restoredUserId = PlayerPrefs.GetInt(SessionUserPrefsKey, -1);
+            if (restoredUserId > 0)
+            {
+                for (int i = 0; i < all.Length; i++)
+                {
+                    if (all[i] != null)
+                    {
+                        all[i].SetCurrentUserId(restoredUserId);
+                        if (persistenceService == null)
+                        {
+                            persistenceService = all[i];
+                        }
+                    }
+                }
+
+                if (persistenceService != null && persistenceService.HasAuthenticatedUser)
+                {
+                    return;
+                }
+            }
+        }
+
+        if (persistenceService == null)
+        {
+            persistenceService = first;
         }
     }
 }
