@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3313150262906324345}
   - component: {fileID: 7193648364271599304}
   - component: {fileID: 8627913836735859641}
+  - component: {fileID: 6052029493209223184}
   m_Layer: 0
   m_Name: RAMPrefab
   m_TagString: Untagged
@@ -122,15 +123,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 5
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 05000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 2
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!23 &8627913836735859641
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -176,6 +188,27 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &6052029493209223184
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 523343836330259099}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.118888855, y: 0.24864006, z: 0.8943863}
+  m_Center: {x: 0.012069702, y: 0.2097168, z: 0.010562897}
 --- !u!1 &7195947126640058162
 GameObject:
   m_ObjectHideFlags: 0

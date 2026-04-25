@@ -44,6 +44,7 @@ GameObject:
   - component: {fileID: 2424977084845667754}
   - component: {fileID: 1464963621762247603}
   - component: {fileID: 7224665213761310460}
+  - component: {fileID: 8506258359823215972}
   m_Layer: 0
   m_Name: StoragePrefab
   m_TagString: Untagged
@@ -153,15 +154,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 7
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 07000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
+--- !u!65 &8506258359823215972
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7567903146616546027}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.72566223, y: 0.19275475, z: 0.42609787}
+  m_Center: {x: -0.06779575, y: 0.07883263, z: 0.018918991}
 --- !u!1001 &1643878055257597272
 PrefabInstance:
   m_ObjectHideFlags: 0

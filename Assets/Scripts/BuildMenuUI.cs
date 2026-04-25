@@ -346,6 +346,7 @@ public class BuildMenuUI : MonoBehaviour
             dragItem = card.AddComponent<UIComponentDragItem>();
         }
         dragItem.InitializeFromMenu(dragController, runtimePc, prefab);
+        BindCardHoverInfo(card, runtimePc);
 
         Sprite icon = LoadCatalogIcon(data.IconPath);
         ApplyCardVisuals(card, data.Name, data.Description, WattsToUiPercent(data.PowerWatts), icon);
@@ -402,6 +403,7 @@ public class BuildMenuUI : MonoBehaviour
             dragItem = card.AddComponent<UIComponentDragItem>();
         }
         dragItem.InitializeFromMenu(dragController, componentData, partData.PartPrefab);
+        BindCardHoverInfo(card, componentData);
 
         ApplyCardVisuals(card, partData.DisplayName, partData.Description, partData.PowerPercent, partData.Icon);
 
@@ -467,6 +469,22 @@ public class BuildMenuUI : MonoBehaviour
                 powerText.text = $"{Mathf.RoundToInt(powerPercent)}%";
             }
         }
+    }
+
+    private static void BindCardHoverInfo(GameObject card, PCComponent component)
+    {
+        if (card == null || component == null)
+        {
+            return;
+        }
+
+        MenuCardInfoHover hover = card.GetComponent<MenuCardInfoHover>();
+        if (hover == null)
+        {
+            hover = card.AddComponent<MenuCardInfoHover>();
+        }
+
+        hover.Initialize(component);
     }
 
     private static Sprite LoadCatalogIcon(string iconPath)

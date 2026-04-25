@@ -230,15 +230,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 4
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 04000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!1 &850498494209111267
 GameObject:
   m_ObjectHideFlags: 0
@@ -865,15 +876,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 7
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 07000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!1 &2151420701006034563
 GameObject:
   m_ObjectHideFlags: 0
@@ -1164,15 +1186,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 5
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 05000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 2
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!23 &765752109634507895
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2010,15 +2043,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 7
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 07000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!1 &4162330407612515186
 GameObject:
   m_ObjectHideFlags: 0
@@ -2352,15 +2396,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 6
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 06000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 500
   psuPower: 0
+  gpuTdpW: 0
 --- !u!1 &4859539540114269442
 GameObject:
   m_ObjectHideFlags: 0
@@ -2373,6 +2428,7 @@ GameObject:
   - component: {fileID: 404618684363950792}
   - component: {fileID: 2229810282660368090}
   - component: {fileID: -4590340849903597503}
+  - component: {fileID: 8161214090587524340}
   m_Layer: 0
   m_Name: CasePrefab
   m_TagString: Untagged
@@ -2488,15 +2544,47 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 1
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 00000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
+--- !u!65 &8161214090587524340
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4859539540114269442}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.657217, y: 0.07772863, z: 2.6354864}
+  m_Center: {x: 1.3324022, y: 0.04265827, z: -0.15158117}
 --- !u!1 &4894174829348057140
 GameObject:
   m_ObjectHideFlags: 0
@@ -2861,15 +2949,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 7
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 07000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!1 &5713370937951071311
 GameObject:
   m_ObjectHideFlags: 0
@@ -3157,15 +3256,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 7
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 07000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!1 &6229966087657494894
 GameObject:
   m_ObjectHideFlags: 0
@@ -3573,15 +3683,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 3
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 02000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 0
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 600
+  gpuTdpW: 0
 --- !u!1 &7590077848156268695
 GameObject:
   m_ObjectHideFlags: 0
@@ -3942,15 +4063,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 5
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 05000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 2
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 0
   requiredPSUPower: 0
   psuPower: 0
+  gpuTdpW: 0
 --- !u!23 &3812502927929048789
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4579,15 +4711,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7177228c43671a544a63b50ecd9fa22d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  databaseId: 0
+  categoryCode: 
   componentType: 2
+  modelTier: 1
+  displayName: 
+  vendor: 
+  model: 
+  description: 
+  priceMinorUnits: 0
+  powerWatts: 0
+  iconPath: 
   compatibleSockets: 03000000
   isInstalled: 0
   parentSlot: {fileID: 0}
-  socketType: 0
-  ramType: 2
+  socketCode: 
+  ramTypeCode: 
   ramSlotsCount: 2
   requiredPSUPower: 600
   psuPower: 0
+  gpuTdpW: 0
 --- !u!1 &8960053305942834946
 GameObject:
   m_ObjectHideFlags: 0

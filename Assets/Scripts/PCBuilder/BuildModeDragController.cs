@@ -430,6 +430,11 @@ public class BuildModeDragController : MonoBehaviour
             ComponentModelBinder.BindVisual(instance.transform, prefabCatalogMap, draggingComponent.ToData());
         }
 
+        if (instanceComponent.GetComponent<PCComponentInfoClickTarget>() == null)
+        {
+            instanceComponent.gameObject.AddComponent<PCComponentInfoClickTarget>();
+        }
+
         return instanceComponent;
     }
 

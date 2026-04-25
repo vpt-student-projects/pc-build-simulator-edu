@@ -441,6 +441,7 @@ GameObject:
   - component: {fileID: 8587435991052520068}
   - component: {fileID: 4636035957159964848}
   - component: {fileID: 5752972403129038840}
+  - component: {fileID: 850956842650709601}
   m_Layer: 0
   m_Name: MotherBoardPrefab
   m_TagString: Untagged
@@ -574,6 +575,27 @@ MonoBehaviour:
   requiredPSUPower: 50
   psuPower: 0
   gpuTdpW: 0
+--- !u!65 &850956842650709601
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2888174567076352305}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.5009079, y: 0.031379223, z: 1.6246223}
+  m_Center: {x: 0.19915581, y: -0.05884242, z: 0.1644535}
 --- !u!1 &3716472442934706838
 GameObject:
   m_ObjectHideFlags: 0
