@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91850041ea857b46b00afa48c8c7ab2, type: 3}
+  m_Name: PcPrefabCatalogMap
+  m_EditorClassIdentifier: 
+  entries:
+  - categoryCode: CASE
+    buildingPrefab: {fileID: 404618684363950792, guid: c806ad6c1a82d4314ab57879cc6d6c71, type: 3}
+    visualModelTier1: {fileID: 3774863237347971168, guid: c173e74570c64a54ebe8c94b2846c543, type: 3}
+    visualModelTier2: {fileID: 3813991163719466757, guid: d956fc870de37a74e94dd8688fdbe7e8, type: 3}
+    visualModelTier3: {fileID: 3753936589993417551, guid: 60f277c8ee864934a97792ee8d3a7f91, type: 3}
+    modelChildName: Model
+  - categoryCode: CPU
+    buildingPrefab: {fileID: 2602707967413847886, guid: 93267f5c628d34348831398df9a338e2, type: 3}
+    visualModelTier1: {fileID: 4281917290210327880, guid: d1348ce28572cf547a07facba73c725e, type: 3}
+    visualModelTier2: {fileID: -6842468739627708529, guid: b85bbfbc128ce1249bc5a3d15ce6df8f, type: 3}
+    visualModelTier3: {fileID: -9083149923773806410, guid: 9be784912b0577b4dbf206d7403bf7b4, type: 3}
+    modelChildName: Model
+  - categoryCode: GPU
+    buildingPrefab: {fileID: 3905710294307925887, guid: 1d09a4639bba44648b0eb8664c5caf80, type: 3}
+    visualModelTier1: {fileID: -163802588853206422, guid: 4b38d5cae2b305745895492bc90105c7, type: 3}
+    visualModelTier2: {fileID: 4041559992846609238, guid: e7edd76fd9e97f144b04fe6884416363, type: 3}
+    visualModelTier3: {fileID: -6209364190040526910, guid: ce6e1155bdbc0a34593ac6867189e09d, type: 3}
+    modelChildName: Model
+  - categoryCode: RAM
+    buildingPrefab: {fileID: 3532305066211882543, guid: 138c61b15a706e347b831daf297f0935, type: 3}
+    visualModelTier1: {fileID: -8675315531624318305, guid: f82e460e7291263499a270e0624e5d6f, type: 3}
+    visualModelTier2: {fileID: 503495947460087236, guid: bb094ce85d8ed084e8b1de93cbd64e51, type: 3}
+    visualModelTier3: {fileID: 7055942368537911914, guid: 27605e65820a34e469887ab159c49e4b, type: 3}
+    modelChildName: Model
+  - categoryCode: PSU
+    buildingPrefab: {fileID: 3603149434608984114, guid: 67a22f7d0755de043a8d859bc395c0a6, type: 3}
+    visualModelTier1: {fileID: 398773682152785711, guid: 3c3c66ae83662f0428675fa12e6efc09, type: 3}
+    visualModelTier2: {fileID: -212820727353294588, guid: 1114a125af9798249bd8a3bdfb95646e, type: 3}
+    visualModelTier3: {fileID: -3797220315346584576, guid: 37a88a826c8d97b4196160dcc895ec90, type: 3}
+    modelChildName: Model
+  - categoryCode: MOTHERBOARD
+    buildingPrefab: {fileID: 8587435991052520068, guid: ef13d382b3232f24d8fa658ab1384643, type: 3}
+    visualModelTier1: {fileID: -1681985508460769438, guid: 7b4d9a43eec798b4cb0bc8bf6107cf35, type: 3}
+    visualModelTier2: {fileID: -8738570625169801249, guid: 5d36982e6a1488b4d9350812614a5cf8, type: 3}
+    visualModelTier3: {fileID: -178291158957564581, guid: 39f9573e8993ee04eb1c4e9d91217863, type: 3}
+    modelChildName: Model
+  - categoryCode: STORAGE
+    buildingPrefab: {fileID: 2424977084845667754, guid: 06b8d21a615cd50409379019c89f24c8, type: 3}
+    visualModelTier1: {fileID: 3466525819375671079, guid: eafb599922342ec4db2249ed4dbc8613, type: 3}
+    visualModelTier2: {fileID: 8053927939211101525, guid: 0bb798b44e54c8c4f8f0e823e8604a96, type: 3}
+    visualModelTier3: {fileID: -8323549673124340751, guid: fa17d9df1cc6a314a82e1585f81a1558, type: 3}
+    modelChildName: Model
+  - categoryCode: CPU_COOLER
+    buildingPrefab: {fileID: 7462476963525163800, guid: 74dea4bcaf8b12a4fb8dcfd790b5f1ab, type: 3}
+    visualModelTier1: {fileID: 3328429812605070155, guid: e826d56785d099649becee0d632972d4, type: 3}
+    visualModelTier2: {fileID: -4985097627186344199, guid: 7ff2f7a8124b0124cbe2b8794a6372c6, type: 3}
+    visualModelTier3: {fileID: 6162965382974850820, guid: b9b6e57109ae18c49a072bf7d26b02db, type: 3}
+    modelChildName: Model

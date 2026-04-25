@@ -15,6 +15,7 @@ public class BuildModeDragController : MonoBehaviour
     [SerializeField] private bool disableDefaultPlacerInputWhileDragging = true;
     [SerializeField] private LayerMask casePlacementMask = ~0;
     [SerializeField] private float caseSurfaceOffset = 0.02f;
+    [SerializeField] private PcPrefabCatalogMap prefabCatalogMap;
 
     private bool isDragging;
     private PCComponent draggingComponent;
@@ -405,6 +406,11 @@ public class BuildModeDragController : MonoBehaviour
         }
 
         instanceComponent.CopyFrom(draggingComponent);
+        if (prefabCatalogMap != null)
+        {
+            ComponentModelBinder.BindVisual(instance.transform, prefabCatalogMap, draggingComponent.ToData());
+        }
+
         return instanceComponent;
     }
 

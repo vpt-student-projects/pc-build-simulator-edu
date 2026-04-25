@@ -1,0 +1,48 @@
+{
+  "components": [
+    {
+      "databaseId": 1,
+      "categoryCode": "CPU",
+      "name": "Intel Core i3-10100F",
+      "vendor": "Intel",
+      "model": "Core i3-10100F",
+      "description": "Пример из schema.sql — замените файл полным экспортом (python tools/export_pc_catalog.py).",
+      "price": 8500,
+      "powerWatts": 65,
+      "modelTier": 1,
+      "iconPath": "",
+      "socket": "LGA1200",
+      "ramType": "DDR4",
+      "ramSlots": 0,
+      "maxRamGb": 0,
+      "requiredPsuW": 0,
+      "psuWattage": 0,
+      "gpuTdpW": 0,
+      "storageType": "",
+      "capacityGb": 0,
+      "coolerSocketsCsv": ""
+    },
+    {
+      "databaseId": 17,
+      "categoryCode": "MOTHERBOARD",
+      "name": "ASUS PRIME H410M-K",
+      "vendor": "ASUS",
+      "model": "PRIME H410M-K",
+      "description": "Пример материнской платы LGA1200 DDR4.",
+      "price": 6500,
+      "powerWatts": 40,
+      "modelTier": 1,
+      "iconPath": "",
+      "socket": "LGA1200",
+      "ramType": "DDR4",
+      "ramSlots": 2,
+      "maxRamGb": 64,
+      "requiredPsuW": 0,
+      "psuWattage": 0,
+      "gpuTdpW": 0,
+      "storageType": "",
+      "capacityGb": 0,
+      "coolerSocketsCsv": ""
+    }
+  ]
+}

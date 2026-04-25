@@ -35,7 +35,7 @@ public static class PCCompatibilityService
             return false;
         }
 
-        return cpu.Socket == assembly.Motherboard.Socket;
+        return SocketEquals(cpu.SocketCode, assembly.Motherboard.SocketCode);
     }
 
     private static bool ValidateRam(PCComponent ram, PCAssemblyState assembly)
@@ -45,7 +45,7 @@ public static class PCCompatibilityService
             return false;
         }
 
-        if (ram.Ram != assembly.Motherboard.Ram)
+        if (!RamEquals(ram.RamTypeCode, assembly.Motherboard.RamTypeCode))
         {
             return false;
         }
@@ -60,6 +60,22 @@ public static class PCCompatibilityService
             return false;
         }
 
-        return gpu.RequiredPSUPower <= assembly.Psu.PsuPower;
+        int need = gpu.RequiredPSUPower > 0 ? gpu.RequiredPSUPower : gpu.GpuTdpW;
+        return need <= assembly.Psu.PsuPower;
+    }
+
+    private static bool SocketEquals(string a, string b)
+    {
+        return string.Equals(Normalize(a), Normalize(b), System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool RamEquals(string a, string b)
+    {
+        return string.Equals(Normalize(a), Normalize(b), System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string Normalize(string s)
+    {
+        return string.IsNullOrWhiteSpace(s) ? string.Empty : s.Trim();
     }
 }

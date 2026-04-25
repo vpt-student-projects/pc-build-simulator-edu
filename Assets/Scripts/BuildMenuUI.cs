@@ -16,12 +16,18 @@ public class BuildMenuUI : MonoBehaviour
     [SerializeField] private TMP_Dropdown powerFilterDropdown;
     [SerializeField] private TMP_Dropdown nameFilterDropdown;
 
-    [Header("Data")]
+    [Header("Catalog (PostgreSQL ? JSON)")]
+    [SerializeField] private ComponentCatalogService catalogService;
+    [SerializeField] private PcPrefabCatalogMap prefabCatalogMap;
+    [Tooltip("???? ? ???????? ???? ?????? ? ?????? ????? ????????  ???? ???????? ?? ??/JSON, ????? ?? ?????? ????.")]
+    [SerializeField] private bool preferCatalogOverManualList = true;
+
+    [Header("Legacy: ?????? ?????? (???? ??????? ????)")]
     [SerializeField] private List<BuildingPartData> allParts = new List<BuildingPartData>();
+
     [Header("Drag & Drop")]
     [SerializeField] private BuildModeDragController dragController;
 
-    // ˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜ Toggle ˜ ˜˜˜˜˜˜˜˜˜
     private Dictionary<Toggle, string> m_ToggleCategories = new Dictionary<Toggle, string>();
 
     private string m_CurrentCategory = "ALL";
@@ -30,59 +36,60 @@ public class BuildMenuUI : MonoBehaviour
 
     private List<GameObject> spawnedCards = new List<GameObject>();
 
-    void Start()
+    private void Start()
     {
-        // ˜˜˜˜˜˜˜˜
         if (cardPrefab == null || contentParent == null || tabsGroup == null)
         {
-            Debug.LogError("˜˜ ˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜˜˜˜˜!");
+            Debug.LogError("BuildMenuUI: ?? ??? ?????? ????????? ? ??????????.");
             return;
         }
 
-        // ˜˜˜˜˜˜˜˜˜ Toggle Group
+        if (catalogService == null)
+        {
+            catalogService = FindFirstObjectByType<ComponentCatalogService>();
+        }
+
         SetupToggles();
 
-        // ˜˜˜˜˜˜˜˜˜ Dropdown ˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜
         if (powerFilterDropdown != null)
         {
             powerFilterDropdown.ClearOptions();
-            powerFilterDropdown.AddOptions(new List<string> { "˜˜˜", "0-25%", "25-50%", "50-75%", "75-100%" });
+            powerFilterDropdown.AddOptions(new List<string> { "???", "0-25%", "25-50%", "50-75%", "75-100%" });
             powerFilterDropdown.onValueChanged.AddListener(OnPowerFilterChanged);
         }
 
-        // ˜˜˜˜˜˜˜˜˜ Dropdown ˜˜˜ ˜˜˜˜˜˜˜˜˜˜
         if (nameFilterDropdown != null)
         {
             nameFilterDropdown.ClearOptions();
-            nameFilterDropdown.AddOptions(new List<string> { "˜˜ ˜˜˜˜˜˜˜˜˜", "˜˜ ˜˜˜˜˜˜˜˜ (˜-˜)", "˜˜ ˜˜˜˜˜˜˜˜ (˜-˜)", "˜˜ ˜˜˜˜˜˜˜˜ (˜˜˜˜.)", "˜˜ ˜˜˜˜˜˜˜˜ (˜˜˜˜.)" });
+            nameFilterDropdown.AddOptions(new List<string> { "?? ?????????", "?? ???????? (?-?)", "?? ???????? (?-?)", "?? ???????? (????.)", "?? ???????? (????.)" });
             nameFilterDropdown.onValueChanged.AddListener(OnNameSortChanged);
         }
 
-        // ˜˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
         RefreshCards();
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜ ˜˜˜˜ Toggle ˜ ˜˜˜˜˜˜
-    /// </summary>
+    private bool UseCatalog()
+    {
+        return preferCatalogOverManualList &&
+               catalogService != null &&
+               prefabCatalogMap != null &&
+               catalogService.Items != null &&
+               catalogService.Items.Count > 0;
+    }
+
     private void SetupToggles()
     {
         m_ToggleCategories.Clear();
 
-        // ˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜ Toggle
         foreach (Transform child in tabsGroup.transform)
         {
             Toggle toggle = child.GetComponent<Toggle>();
             if (toggle != null)
             {
-                // ˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
                 toggle.onValueChanged.RemoveAllListeners();
-
-                // ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜
                 string category = GetCategoryFromToggleName(child.name);
                 m_ToggleCategories[toggle] = category;
 
-                // ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
                 toggle.onValueChanged.AddListener((isOn) => {
                     if (isOn)
                     {
@@ -90,12 +97,10 @@ public class BuildMenuUI : MonoBehaviour
                     }
                 });
 
-                // ˜˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜
                 toggle.group = tabsGroup;
             }
         }
 
-        // ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ Toggle (˜˜)
         foreach (var kvp in m_ToggleCategories)
         {
             if (kvp.Value == "ALL")
@@ -106,44 +111,45 @@ public class BuildMenuUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜ Toggle
-    /// </summary>
     private string GetCategoryFromToggleName(string toggleName)
     {
-        // ˜˜˜˜˜˜˜ ˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜
-        switch (toggleName.ToLower())
+        string n = toggleName.ToLowerInvariant().Trim();
+        switch (n)
         {
-            case "˜˜":
+            case "???":
             case "all":
                 return "ALL";
-            case "˜˜˜":
+            case "????":
             case "cpu":
                 return "CPU";
-            case "":
+            case "??":
             case "ram":
                 return "RAM";
-            case " ":
+            case "?":
             case "psu":
                 return "PSU";
-            case "˜˜˜˜˜˜˜˜˜":
+            case "?????????":
             case "motherboard":
                 return "MOTHERBOARD";
-            case "˜˜˜˜˜˜":
+            case "??????":
             case "case":
                 return "CASE";
-            case "˜˜˜˜˜˜˜˜˜˜":
+            case "??????????":
             case "gpu":
                 return "GPU";
+            case "????????":
+            case "storage":
+                return "STORAGE";
+            case "?????":
+            case "cpu_cooler":
+            case "cooler":
+                return "CPU_COOLER";
             default:
-                Debug.LogWarning($"˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜ Toggle: {toggleName}. ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜.");
-                return toggleName.ToUpper();
+                Debug.LogWarning($"BuildMenuUI: ??????????? ??? ??????? '{toggleName}', ???????????? ??? ??? ?????????.");
+                return toggleName.ToUpperInvariant();
         }
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜ Toggle
-    /// </summary>
     private void OnCategoryChanged(Toggle activeToggle)
     {
         if (m_ToggleCategories.TryGetValue(activeToggle, out string category))
@@ -153,9 +159,6 @@ public class BuildMenuUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
-    /// </summary>
     private void OnPowerFilterChanged(int index)
     {
         switch (index)
@@ -169,9 +172,6 @@ public class BuildMenuUI : MonoBehaviour
         RefreshCards();
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜˜ ˜˜˜ ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜
-    /// </summary>
     private void OnNameSortChanged(int index)
     {
         switch (index)
@@ -185,37 +185,54 @@ public class BuildMenuUI : MonoBehaviour
         RefreshCards();
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜, ˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜
-    /// </summary>
+    private static float WattsToUiPercent(int watts)
+    {
+        return Mathf.Clamp(watts / 4f, 0f, 100f);
+    }
+
     private bool PassesPowerFilter(BuildingPartData part)
     {
-        if (m_CurrentPowerFilter == "ALL") return true;
+        if (m_CurrentPowerFilter == "ALL")
+        {
+            return true;
+        }
 
         float power = part.PowerPercent;
+        return PassesPowerPercentBucket(power);
+    }
 
+    private bool PassesPowerFilter(PcComponentData part)
+    {
+        if (m_CurrentPowerFilter == "ALL")
+        {
+            return true;
+        }
+
+        float power = WattsToUiPercent(part.PowerWatts);
+        return PassesPowerPercentBucket(power);
+    }
+
+    private bool PassesPowerPercentBucket(float power)
+    {
         switch (m_CurrentPowerFilter)
         {
-            case "0-25": return power >= 0 && power <= 25;
-            case "25-50": return power > 25 && power <= 50;
-            case "50-75": return power > 50 && power <= 75;
-            case "75-100": return power > 75 && power <= 100;
+            case "0-25": return power >= 0f && power <= 25f;
+            case "25-50": return power > 25f && power <= 50f;
+            case "50-75": return power > 50f && power <= 75f;
+            case "75-100": return power > 75f && power <= 100f;
             default: return true;
         }
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜
-    /// </summary>
     private List<BuildingPartData> SortParts(List<BuildingPartData> parts)
     {
         switch (m_CurrentNameSort)
         {
             case "NAME_ASC":
-                parts.Sort((a, b) => a.DisplayName.CompareTo(b.DisplayName));
+                parts.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.OrdinalIgnoreCase));
                 break;
             case "NAME_DESC":
-                parts.Sort((a, b) => b.DisplayName.CompareTo(a.DisplayName));
+                parts.Sort((a, b) => string.Compare(b.DisplayName, a.DisplayName, System.StringComparison.OrdinalIgnoreCase));
                 break;
             case "POWER_ASC":
                 parts.Sort((a, b) => a.PowerPercent.CompareTo(b.PowerPercent));
@@ -227,46 +244,131 @@ public class BuildMenuUI : MonoBehaviour
         return parts;
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜
-    /// </summary>
+    private List<PcComponentData> SortCatalogParts(List<PcComponentData> parts)
+    {
+        switch (m_CurrentNameSort)
+        {
+            case "NAME_ASC":
+                parts.Sort((a, b) => string.Compare(a.Name, b.Name, System.StringComparison.OrdinalIgnoreCase));
+                break;
+            case "NAME_DESC":
+                parts.Sort((a, b) => string.Compare(b.Name, a.Name, System.StringComparison.OrdinalIgnoreCase));
+                break;
+            case "POWER_ASC":
+                parts.Sort((a, b) => a.PowerWatts.CompareTo(b.PowerWatts));
+                break;
+            case "POWER_DESC":
+                parts.Sort((a, b) => b.PowerWatts.CompareTo(a.PowerWatts));
+                break;
+        }
+        return parts;
+    }
+
     public void RefreshCards()
     {
         ClearCards();
 
-        // ˜˜˜˜˜˜˜˜˜ ˜˜ ˜˜˜˜˜˜˜˜˜ ˜ ˜˜˜˜˜˜˜˜
-        List<BuildingPartData> filteredParts = new List<BuildingPartData>();
-
-        foreach (var part in allParts)
+        if (UseCatalog())
         {
-            if (part == null) continue;
+            List<PcComponentData> filtered = new List<PcComponentData>();
+            foreach (PcComponentData part in catalogService.Items)
+            {
+                if (part == null)
+                {
+                    continue;
+                }
 
-            // ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜
+                bool categoryMatch = m_CurrentCategory == "ALL" ||
+                    string.Equals(part.CategoryCode, m_CurrentCategory, System.StringComparison.OrdinalIgnoreCase);
+                if (!categoryMatch || !PassesPowerFilter(part))
+                {
+                    continue;
+                }
+
+                filtered.Add(part);
+            }
+
+            filtered = SortCatalogParts(filtered);
+            foreach (PcComponentData partData in filtered)
+            {
+                CreateCardFromCatalog(partData);
+            }
+
+            if (filtered.Count == 0)
+            {
+                Debug.LogWarning("BuildMenuUI: ??????? ????????, ?? ????? ???????? ??? ?????. ????????? ???? ????????? ? ???????.");
+            }
+
+            return;
+        }
+
+        List<BuildingPartData> filteredParts = new List<BuildingPartData>();
+        foreach (BuildingPartData part in allParts)
+        {
+            if (part == null)
+            {
+                continue;
+            }
+
             bool categoryMatch = m_CurrentCategory == "ALL" || part.Category == m_CurrentCategory;
-
-            // ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
-            bool powerMatch = PassesPowerFilter(part);
-
-            if (categoryMatch && powerMatch)
+            if (categoryMatch && PassesPowerFilter(part))
             {
                 filteredParts.Add(part);
             }
         }
 
-        // ˜˜˜˜˜˜˜˜˜
         filteredParts = SortParts(filteredParts);
-
-        // ˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
-        foreach (var partData in filteredParts)
+        foreach (BuildingPartData partData in filteredParts)
         {
-            CreateCard(partData);
+            CreateCardFromInspector(partData);
         }
     }
 
-    /// <summary>
-    /// ˜˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜
-    /// </summary>
-    private void CreateCard(BuildingPartData partData)
+    private void CreateCardFromCatalog(PcComponentData data)
+    {
+        BuildingPart prefab = prefabCatalogMap.GetBuildingPrefab(data.CategoryCode);
+        if (prefab == null)
+        {
+            Debug.LogWarning($"BuildMenuUI: ??? ??????? ? PcPrefabCatalogMap ??? ????????? '{data.CategoryCode}' (????????? id={data.DatabaseId}).");
+            return;
+        }
+
+        GameObject card = Instantiate(cardPrefab, contentParent);
+        GameObject holder = new GameObject("RuntimePC_" + data.DatabaseId);
+        holder.transform.SetParent(card.transform, false);
+        PCComponent runtimePc = holder.AddComponent<PCComponent>();
+        runtimePc.ApplyFromData(data);
+
+        UIComponentDragItem dragItem = card.GetComponent<UIComponentDragItem>();
+        if (dragItem == null)
+        {
+            dragItem = card.AddComponent<UIComponentDragItem>();
+        }
+        dragItem.InitializeFromMenu(dragController, runtimePc, prefab);
+
+        ApplyCardVisuals(card, data.Name, data.Description, WattsToUiPercent(data.PowerWatts), null);
+
+        Transform buttonTransform = card.transform.Find("UseButton");
+        if (buttonTransform != null)
+        {
+            Button useBtn = buttonTransform.GetComponent<Button>();
+            if (useBtn != null)
+            {
+                useBtn.onClick.RemoveAllListeners();
+            }
+
+            UIComponentDragItem buttonDragItem = buttonTransform.GetComponent<UIComponentDragItem>();
+            if (buttonDragItem == null)
+            {
+                buttonDragItem = buttonTransform.gameObject.AddComponent<UIComponentDragItem>();
+            }
+            buttonDragItem.InitializeFromMenu(dragController, runtimePc, prefab);
+        }
+
+        spawnedCards.Add(card);
+    }
+
+    private void CreateCardFromInspector(BuildingPartData partData)
     {
         GameObject card = Instantiate(cardPrefab, contentParent);
 
@@ -276,7 +378,22 @@ public class BuildMenuUI : MonoBehaviour
             componentData = partData.PartPrefab.GetComponent<PCComponent>();
         }
 
-        // Drag item receives data only from BuildMenuUI.
+        if (componentData == null && partData.PartPrefab != null)
+        {
+            GameObject holder = new GameObject("LegacyPC");
+            holder.transform.SetParent(card.transform, false);
+            componentData = holder.AddComponent<PCComponent>();
+            componentData.ApplyFromData(new PcComponentData
+            {
+                CategoryCode = partData.Category,
+                Name = partData.DisplayName,
+                Description = partData.Description,
+                PowerWatts = Mathf.RoundToInt(partData.PowerPercent * 4f),
+                ModelTier = 1,
+                Price = 0
+            });
+        }
+
         UIComponentDragItem dragItem = card.GetComponent<UIComponentDragItem>();
         if (dragItem == null)
         {
@@ -284,39 +401,8 @@ public class BuildMenuUI : MonoBehaviour
         }
         dragItem.InitializeFromMenu(dragController, componentData, partData.PartPrefab);
 
-        // ˜˜˜˜˜˜˜˜
-        Transform nameTransform = card.transform.Find("Name");
-        if (nameTransform != null)
-        {
-            TMP_Text nameText = nameTransform.GetComponent<TMP_Text>();
-            if (nameText != null) nameText.text = partData.DisplayName;
-        }
+        ApplyCardVisuals(card, partData.DisplayName, partData.Description, partData.PowerPercent, partData.Icon);
 
-        // ˜˜˜˜˜˜
-        Transform iconTransform = card.transform.Find("Icon");
-        if (iconTransform != null)
-        {
-            Image iconImage = iconTransform.GetComponent<Image>();
-            if (iconImage != null) iconImage.sprite = partData.Icon;
-        }
-
-        // ˜˜˜˜˜˜˜˜
-        Transform descTransform = card.transform.Find("Description");
-        if (descTransform != null)
-        {
-            TMP_Text descText = descTransform.GetComponent<TMP_Text>();
-            if (descText != null) descText.text = partData.Description;
-        }
-
-        // ˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜
-        Transform powerTransform = card.transform.Find("PowerText");
-        if (powerTransform != null)
-        {
-            TMP_Text powerText = powerTransform.GetComponent<TMP_Text>();
-            if (powerText != null) powerText.text = $"{partData.PowerPercent}%";
-        }
-
-        // ˜˜˜˜˜˜ "˜˜˜˜˜˜˜˜˜˜˜˜"
         Transform buttonTransform = card.transform.Find("UseButton");
         if (buttonTransform != null)
         {
@@ -337,28 +423,58 @@ public class BuildMenuUI : MonoBehaviour
         spawnedCards.Add(card);
     }
 
-    private void SelectPart(BuildingPart part)
+    private static void ApplyCardVisuals(GameObject card, string title, string description, float powerPercent, Sprite icon)
     {
-        if (part == null) return;
-
-        BuildingPlacer placer = BuildingPlacer.Instance;
-        if (placer == null) return;
-
-        placer.SelectBuildingPart(part);
-        placer.ChangeBuildMode(BuildingPlacer.BuildMode.PLACE);
-
-        BuildMenuController menuController = GetComponent<BuildMenuController>();
-        if (menuController != null)
+        Transform nameTransform = card.transform.Find("Name");
+        if (nameTransform != null)
         {
-            menuController.CloseMenu();
+            TMP_Text nameText = nameTransform.GetComponent<TMP_Text>();
+            if (nameText != null)
+            {
+                nameText.text = title;
+            }
+        }
+
+        Transform iconTransform = card.transform.Find("Icon");
+        if (iconTransform != null)
+        {
+            Image iconImage = iconTransform.GetComponent<Image>();
+            if (iconImage != null)
+            {
+                iconImage.sprite = icon;
+                iconImage.enabled = icon != null;
+            }
+        }
+
+        Transform descTransform = card.transform.Find("Description");
+        if (descTransform != null)
+        {
+            TMP_Text descText = descTransform.GetComponent<TMP_Text>();
+            if (descText != null)
+            {
+                descText.text = description;
+            }
+        }
+
+        Transform powerTransform = card.transform.Find("PowerText");
+        if (powerTransform != null)
+        {
+            TMP_Text powerText = powerTransform.GetComponent<TMP_Text>();
+            if (powerText != null)
+            {
+                powerText.text = $"{Mathf.RoundToInt(powerPercent)}%";
+            }
         }
     }
 
     private void ClearCards()
     {
-        foreach (var card in spawnedCards)
+        foreach (GameObject card in spawnedCards)
         {
-            if (card != null) Destroy(card);
+            if (card != null)
+            {
+                Destroy(card);
+            }
         }
         spawnedCards.Clear();
     }
@@ -367,7 +483,7 @@ public class BuildMenuUI : MonoBehaviour
     public class BuildingPartData
     {
         public string DisplayName;
-        public string Category; // "CPU", "GPU", "RAM", "PSU", "MOTHERBOARD", "CASE"
+        public string Category;
         public Sprite Icon;
         public string Description;
         public float PowerPercent;

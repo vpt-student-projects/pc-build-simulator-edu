@@ -2,14 +2,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Универсальный слот установки. Поддерживает локальные поправки позы (как offset в EBS),
+/// отдельную точку старта анимации и превью-префаб в редакторе для настройки без угадывания координат.
+/// </summary>
+[ExecuteAlways]
 public class BuildSlot : MonoBehaviour
 {
+    private const string EditorPreviewChildName = "_PlacementPreview_";
+
     [Header("Slot Setup")]
     [SerializeField] private PCSlotType slotType = PCSlotType.None;
     [SerializeField] private List<PCComponentType> allowedComponentTypes = new List<PCComponentType>();
+    [Tooltip("Точка привязки: origin + rotation задают систему координат для поправок ниже.")]
     [SerializeField] private Transform snapTransform;
+    [Tooltip("Если задано — анимация начинается отсюда; иначе от позиции с учётом «подхода» от snap.")]
     [SerializeField] private Transform animationStartTransform;
     [SerializeField] private Renderer highlightMesh;
+
+    [Header("Placement corrections (local to Snap)")]
+    [Tooltip("Смещение финальной позиции в локальных осях Snap (как Position в EBS SnappingPoint).")]
+    [SerializeField] private Vector3 installLocalPosition;
+    [Tooltip("Дополнительный поворот в локальных осях Snap (Euler, как Rotation в EBS).")]
+    [SerializeField] private Vector3 installLocalEulerAngles;
+
+    [Header("Animation start (when Animation Start is empty)")]
+    [Tooltip("Локальное смещение от финальной позы — откуда «прилетает» деталь (например чуть выше/назад).")]
+    [SerializeField] private Vector3 animationApproachLocalOffset = new Vector3(0f, 0.08f, -0.12f);
+
+    [Header("Editor placement preview")]
+    [Tooltip("Префаб для визуальной подсказки в редакторе (не обязан совпадать с реальным BuildingPart).")]
+    [SerializeField] private GameObject placementPreviewPrefab;
+    [Tooltip("В Play Mode превью удаляется, чтобы не мешать игре.")]
+    [SerializeField] private bool hidePlacementPreviewInPlayMode = true;
 
     [Header("Highlight Colors")]
     [SerializeField] private Color idleColor = new Color(0f, 0f, 0f, 0f);
@@ -27,7 +52,43 @@ public class BuildSlot : MonoBehaviour
     public bool IsOccupied => currentComponent != null;
     public IReadOnlyList<PCComponentType> AllowedComponentTypes => allowedComponentTypes;
     public Transform SnapTransform => snapTransform != null ? snapTransform : transform;
-    public Transform AnimationStartTransform => animationStartTransform != null ? animationStartTransform : SnapTransform;
+
+    public Transform AnimationStartTransform
+    {
+        get
+        {
+            if (animationStartTransform != null)
+            {
+                return animationStartTransform;
+            }
+
+            return SnapTransform;
+        }
+    }
+
+    private void Awake()
+    {
+        if (Application.isPlaying && hidePlacementPreviewInPlayMode)
+        {
+            DestroyEditorPreviewInstance();
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (!Application.isPlaying)
+        {
+            RefreshEditorPlacementPreview();
+        }
+    }
+
+    private void OnValidate()
+    {
+        if (!Application.isPlaying)
+        {
+            RefreshEditorPlacementPreview();
+        }
+    }
 
     public bool CanPlace(PCComponent component)
     {
@@ -61,7 +122,7 @@ public class BuildSlot : MonoBehaviour
 
         currentComponent = component;
         component.MarkInstalled(this);
-        component.transform.SetParent(transform, true);
+        component.transform.SetParent(SnapTransform, true);
         PreparePlacedComponent(component);
         PCAssemblyState assembly = FindAssemblyState();
         if (assembly != null)
@@ -114,15 +175,36 @@ public class BuildSlot : MonoBehaviour
         SetHighlightColor(CanPlace(component) ? validColor : invalidColor);
     }
 
+    /// <summary>
+    /// Финальная мировая поза детали с учётом installLocal* относительно Snap.
+    /// </summary>
+    public void GetInstallWorldPose(out Vector3 worldPosition, out Quaternion worldRotation)
+    {
+        Transform anchor = SnapTransform;
+        worldPosition = anchor.position + anchor.rotation * installLocalPosition;
+        worldRotation = anchor.rotation * Quaternion.Euler(installLocalEulerAngles);
+    }
+
     private IEnumerator AnimatePlacement(Transform componentTransform)
     {
-        Transform target = SnapTransform;
-        Transform start = AnimationStartTransform;
-        Vector3 startPos = start.position;
-        Quaternion startRot = start.rotation;
-        Vector3 endPos = target.position;
-        Quaternion endRot = target.rotation;
+        GetInstallWorldPose(out Vector3 endPos, out Quaternion endRot);
 
+        Vector3 startPos;
+        Quaternion startRot;
+
+        if (animationStartTransform != null)
+        {
+            startPos = animationStartTransform.position;
+            startRot = animationStartTransform.rotation;
+        }
+        else
+        {
+            Transform anchor = SnapTransform;
+            startPos = endPos + anchor.rotation * animationApproachLocalOffset;
+            startRot = endRot;
+        }
+
+        componentTransform.SetParent(SnapTransform, true);
         componentTransform.position = startPos;
         componentTransform.rotation = startRot;
 
@@ -141,10 +223,9 @@ public class BuildSlot : MonoBehaviour
 
     private void Snap(Transform componentTransform)
     {
-        Transform target = SnapTransform;
-        componentTransform.position = target.position;
-        componentTransform.rotation = target.rotation;
-        componentTransform.SetParent(transform, true);
+        GetInstallWorldPose(out Vector3 worldPosition, out Quaternion worldRotation);
+        componentTransform.SetPositionAndRotation(worldPosition, worldRotation);
+        componentTransform.SetParent(SnapTransform, true);
     }
 
     private void SetHighlightColor(Color color)
@@ -174,5 +255,67 @@ public class BuildSlot : MonoBehaviour
     private PCAssemblyState FindAssemblyState()
     {
         return Object.FindFirstObjectByType<PCAssemblyState>();
+    }
+
+    private void RefreshEditorPlacementPreview()
+    {
+        Transform anchor = SnapTransform;
+        Transform existing = anchor.Find(EditorPreviewChildName);
+
+        if (placementPreviewPrefab == null)
+        {
+            if (existing != null)
+            {
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    DestroyImmediate(existing.gameObject);
+                }
+                else
+                {
+                    Destroy(existing.gameObject);
+                }
+#else
+                Destroy(existing.gameObject);
+#endif
+            }
+
+            return;
+        }
+
+        GameObject previewInstance;
+        if (existing == null)
+        {
+            previewInstance = Instantiate(placementPreviewPrefab, anchor);
+            previewInstance.name = EditorPreviewChildName;
+        }
+        else
+        {
+            previewInstance = existing.gameObject;
+        }
+
+        previewInstance.transform.localPosition = installLocalPosition;
+        previewInstance.transform.localRotation = Quaternion.Euler(installLocalEulerAngles);
+        previewInstance.transform.localScale = Vector3.one;
+
+        foreach (Collider c in previewInstance.GetComponentsInChildren<Collider>(true))
+        {
+            c.enabled = false;
+        }
+
+        foreach (Renderer r in previewInstance.GetComponentsInChildren<Renderer>(true))
+        {
+            r.enabled = true;
+        }
+    }
+
+    private void DestroyEditorPreviewInstance()
+    {
+        Transform anchor = SnapTransform;
+        Transform existing = anchor.Find(EditorPreviewChildName);
+        if (existing != null)
+        {
+            Destroy(existing.gameObject);
+        }
     }
 }

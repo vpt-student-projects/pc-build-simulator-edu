@@ -24,3 +24,5 @@ MonoBehaviour:
   - CPU
   - RAM
   - PowerSupply
+  - CPUFan
+  - Hard
