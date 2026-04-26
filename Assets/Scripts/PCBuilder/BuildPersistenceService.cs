@@ -521,7 +521,7 @@ ORDER BY id ASC;";
             return false;
         }
 
-        ClearCurrentBuild();
+        List<Transform> clearedRoots = ClearCurrentBuild();
 
         var catalogById = new Dictionary<int, PcComponentData>();
         for (int i = 0; i < catalogService.Items.Count; i++)
@@ -533,7 +533,18 @@ ORDER BY id ASC;";
             }
         }
 
-        BuildSlot[] allSlots = FindObjectsByType<BuildSlot>(FindObjectsSortMode.None);
+        BuildSlot[] allSlotsRaw = FindObjectsByType<BuildSlot>(FindObjectsSortMode.None);
+        var allSlots = new List<BuildSlot>(allSlotsRaw.Length);
+        for (int i = 0; i < allSlotsRaw.Length; i++)
+        {
+            BuildSlot slot = allSlotsRaw[i];
+            if (slot == null || IsDescendantOfAny(slot.transform, clearedRoots))
+            {
+                continue;
+            }
+
+            allSlots.Add(slot);
+        }
         items.Sort((a, b) => PlacementPriority(a.SlotCode).CompareTo(PlacementPriority(b.SlotCode)));
 
         int placed = 0;
@@ -586,7 +597,7 @@ ORDER BY id ASC;";
         return placed > 0;
     }
 
-    private bool TryPlaceIntoSlot(PCComponent component, string slotCode, BuildSlot[] allSlots)
+    private bool TryPlaceIntoSlot(PCComponent component, string slotCode, List<BuildSlot> allSlots)
     {
         if (component == null || string.IsNullOrWhiteSpace(slotCode) || string.Equals(slotCode, "LOOSE", StringComparison.OrdinalIgnoreCase))
         {
@@ -598,7 +609,7 @@ ORDER BY id ASC;";
             return false;
         }
 
-        for (int i = 0; i < allSlots.Length; i++)
+        for (int i = 0; i < allSlots.Count; i++)
         {
             BuildSlot slot = allSlots[i];
             if (slot == null || slot.SlotType != slotType || slot.IsOccupied)
@@ -617,8 +628,24 @@ ORDER BY id ASC;";
         return false;
     }
 
-    private void ClearCurrentBuild()
+    private List<Transform> ClearCurrentBuild()
     {
+        var clearedRoots = new List<Transform>(32);
+
+        // Важно: сначала освобождаем все слоты, чтобы в этом же кадре они точно
+        // считались свободными для последующей загрузки новой сборки.
+        BuildSlot[] slots = FindObjectsByType<BuildSlot>(FindObjectsSortMode.None);
+        for (int i = 0; i < slots.Length; i++)
+        {
+            BuildSlot slot = slots[i];
+            if (slot == null)
+            {
+                continue;
+            }
+
+            slot.Remove();
+        }
+
         PCComponent[] components = FindObjectsByType<PCComponent>(FindObjectsSortMode.None);
         for (int i = 0; i < components.Length; i++)
         {
@@ -628,17 +655,40 @@ ORDER BY id ASC;";
                 continue;
             }
 
-            if (c.ParentSlot != null)
-            {
-                c.ParentSlot.Remove();
-            }
-            else if (assemblyState != null)
+            if (assemblyState != null)
             {
                 assemblyState.RegisterRemoved(c);
             }
 
+            clearedRoots.Add(c.transform);
             Destroy(c.gameObject);
         }
+
+        return clearedRoots;
+    }
+
+    private static bool IsDescendantOfAny(Transform target, List<Transform> roots)
+    {
+        if (target == null || roots == null || roots.Count == 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < roots.Count; i++)
+        {
+            Transform root = roots[i];
+            if (root == null)
+            {
+                continue;
+            }
+
+            if (target == root || target.IsChildOf(root))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool TryResolveConnectionString(out string connectionString)
